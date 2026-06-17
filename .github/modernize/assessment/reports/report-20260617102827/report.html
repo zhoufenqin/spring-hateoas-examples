@@ -1,0 +1,1577 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Assessment - spring-hateoas-examples</title>
+<style>
+:root {
+  --bg-primary: #ffffff;
+  --bg-card: #f8f9fa;
+  --bg-page: #f0f1f3;
+  --text-primary: #24292f;
+  --text-secondary: #57606a;
+  --text-muted: #6b7280;
+  --border-color: #d0d7de;
+  --border-light: #e1e4e8;
+  --link-color: #2563eb;
+  --color-mandatory: #E3008C;
+  --color-potential: #637CEF;
+  --color-optional: #A19F9D;
+  --font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+  --font-mono: 'Cascadia Code', 'Consolas', 'Courier New', monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-family); font-size: 13px; color: var(--text-primary); background: var(--bg-primary); line-height: 1.5; margin: 0; padding: 0; }
+a { color: var(--link-color); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ── Page layout ───────────────────────────────────────────── */
+.main { margin: 0; padding: 24px 32px; background: var(--bg-primary); }
+.back-link { color: var(--text-muted); font-size: 13px; margin-bottom: 16px; display: block; }
+h1 { font-weight: 600; font-size: 20px; color: var(--text-primary); margin-bottom: 20px; }
+
+/* ── Report cards (matches VS Code .vscode-report-card) ──── */
+.report-card { background: var(--bg-card); border: 1px solid var(--border-light); border-radius: 4px; padding: 12px; margin-bottom: 20px; }
+.report-card h2 { font-size: 14px; font-weight: 600; margin: 0; color: var(--text-primary); }
+.report-card-body { margin-top: 16px; }
+
+/* ── Component Information (two-column) ────────────────── */
+.app-info-container { display: flex; gap: 8px; flex-wrap: wrap; }
+.app-info-column { flex: 1; min-width: 200px; display: flex; flex-direction: column; gap: 8px; }
+.app-info-row { display: flex; align-items: baseline; }
+.app-info-label { width: 136px; flex-shrink: 0; font-weight: 600; color: var(--text-primary); }
+.app-info-value { flex: 1; color: var(--text-primary); }
+
+/* ── Issue Summary (pie charts + legend) ─────────────────── */
+.cards-container { display: flex; align-items: stretch; gap: 20px; flex-wrap: wrap; }
+.issue-summary-card { flex: 2; }
+.domain-summary-container { display: flex; flex-wrap: wrap; gap: 20px; justify-content: space-around; }
+.domain-summary-item { flex: 1; min-width: 120px; text-align: center; padding: 0 16px; border-right: 1px solid var(--border-light); }
+.domain-summary-item:last-child { border-right: none; }
+.domain-summary-item h3 { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-top: 8px; }
+.domain-summary-item .count { font-size: 12px; color: var(--text-secondary); }
+.criticality-legend { display: flex; flex-wrap: wrap; gap: 15px; padding-top: 12px; justify-content: center; }
+.criticality-legend .legend-item { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--text-secondary); }
+.legend-swatch { display: inline-block; width: 1em; height: 1em; border-radius: 2px; }
+
+/* ── Issue list tables ───────────────────────────────────── */
+.issue-section { margin-top: 20px; }
+.issue-section h2 { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+.issue-table { width: 100%; border-collapse: collapse; table-layout: fixed; min-width: 600px; }
+.issue-table th { text-align: left; text-transform: uppercase; font-weight: 600; font-size: calc(13px * 0.875); padding: 6px 8px; background: var(--bg-card); border-bottom: 1px solid var(--border-color); color: var(--text-secondary); position: sticky; top: 0; z-index: 1; }
+.issue-table td { padding: 12px 8px; border-bottom: 1px solid var(--border-light); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
+.col-issue { width: 55%; }
+.col-criticality { width: 25%; }
+.col-storypoint { width: 20%; }
+
+/* ── Target dropdown ─────────────────────────────────────── */
+.target-select-container { margin: 4px 0 16px 0; display: flex; align-items: center; gap: 8px; }
+.target-select-container label { font-weight: 600; color: var(--text-primary); font-size: 14px; }
+.target-select-container select { font-family: var(--font-family); font-size: 13px; padding: 4px 8px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary); color: var(--text-primary); cursor: pointer; }
+
+/* ── Filter bar ──────────────────────────────────────────── */
+.filter-bar { display: flex; flex-wrap: wrap; gap: 16px; margin: 16px 0 8px 0; align-items: center; }
+.multi-select { position: relative; display: inline-block; min-width: 140px; }
+.multi-select-btn { font-family: var(--font-family); font-size: 13px; padding: 4px 24px 4px 8px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-primary); color: var(--text-primary); cursor: pointer; width: 100%; text-align: left; position: relative; white-space: nowrap; }
+.multi-select-btn::after { content: '\25BE'; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 11px; color: var(--text-secondary); }
+.multi-select-dropdown { display: none; position: absolute; top: 100%; left: 0; min-width: 100%; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 100; margin-top: 2px; }
+.multi-select.open .multi-select-dropdown { display: block; }
+.multi-select-option { display: flex; align-items: center; gap: 6px; padding: 5px 10px; cursor: pointer; font-size: 13px; white-space: nowrap; }
+.multi-select-option:hover { background: var(--bg-secondary); }
+.multi-select-option input[type=checkbox] { margin: 0; cursor: pointer; }
+.clear-filters { font-size: 12px; color: var(--link-color); cursor: pointer; margin-left: 4px; }
+
+/* ── Criticality labels (colored square + text) ──────────── */
+.crit-label { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; white-space: nowrap; }
+.crit-square { display: inline-block; width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+.crit-square-mandatory { background: var(--color-mandatory); }
+.crit-square-potential { background: var(--color-potential); }
+.crit-square-optional { background: var(--color-optional); }
+
+/* ── Expandable rows ─────────────────────────────────────── */
+.expand-btn { background: none; border: none; cursor: pointer; width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 11px; transition: transform 0.15s; padding: 0; vertical-align: middle; flex-shrink: 0; }
+.expand-btn.open { transform: rotate(90deg); }
+.issue-title-cell { display: flex; align-items: center; gap: 4px; }
+.detail-row td { padding: 0; border-bottom: 1px solid var(--border-light); white-space: normal; overflow: visible; text-overflow: clip; }
+.detail-content { display: flex; gap: 0; padding: 8px 8px 8px 32px; min-width: 0; }
+.file-list { flex: 0 0 50%; min-width: 0; overflow: hidden; }
+.file-list table { width: 100%; border-collapse: collapse; }
+.file-list th { font-size: calc(13px * 0.875); text-transform: uppercase; font-weight: 600; color: var(--text-secondary); padding: 6px 8px; border-bottom: 1px solid var(--border-color); text-align: left; height: 32px; }
+.file-list td { font-size: 13px; padding: 6px 8px; border-bottom: 1px solid var(--border-light); color: var(--text-primary); }
+.file-list .file-path { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 300px; display: block; }
+.file-list .position { font-family: var(--font-mono); font-size: 12px; color: var(--text-secondary); }
+.explanation-panel { flex: 1; padding-left: 16px; min-width: 0; overflow-wrap: break-word; word-wrap: break-word; }
+.explanation-panel h4 { font-size: calc(13px * 0.875); text-transform: uppercase; font-weight: 600; color: var(--text-secondary); padding: 6px 0; border-bottom: 1px solid var(--border-color); height: 32px; margin: 0; }
+.explanation-panel p { font-size: 13px; padding: 8px 0; color: var(--text-primary); line-height: 1.6; white-space: normal; word-break: break-word; }
+
+/* ── Experimental badge ──────────────────────────────────── */
+.badge-experimental { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; background: #fef9c3; color: #854d0e; vertical-align: middle; margin-left: 8px; cursor: default; }
+
+/* ── Footer ──────────────────────────────────────────────── */
+.footer { text-align: center; margin-top: 24px; color: var(--text-muted); font-size: 13px; }
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 800px) {
+  .main { padding: 16px; }
+  .app-info-container { flex-direction: column; }
+  .domain-summary-container { flex-direction: column; }
+  .domain-summary-item { border-right: none; border-bottom: 1px solid var(--border-light); padding-bottom: 12px; }
+  .detail-content { flex-direction: column; }
+  .file-list { flex: none; width: 100%; }
+  .explanation-panel { padding-left: 0; padding-top: 8px; }
+}
+/* ── Tab navigation ──────────────────────────────────────── */
+.tab-nav { display: flex; gap: 0; border-bottom: 1px solid var(--border-color); margin-bottom: 28px; flex-wrap: wrap; }
+.tab-btn { background: none; border: none; border-bottom: 2px solid transparent; padding: 10px 18px; font-size: 13px; font-family: var(--font-family); color: var(--text-secondary); cursor: pointer; margin-bottom: -1px; white-space: nowrap; position: relative; }
+.tab-btn:hover { color: var(--text-primary); }
+.tab-btn.active { color: var(--link-color); border-bottom-color: var(--link-color); font-weight: 600; }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ── Tooltip on tab ──────────────────────────────────────── */
+.tab-btn[data-tooltip]::after { content: attr(data-tooltip); position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); background: #24292f; color: #ffffff; font-size: 12px; font-weight: 400; padding: 6px 10px; border-radius: 4px; white-space: normal; width: max-content; max-width: 260px; text-align: center; pointer-events: none; opacity: 0; transition: opacity 0.15s; z-index: 100; }
+.tab-btn[data-tooltip]:hover::after { opacity: 1; }
+
+/* ── Fact content — prose column ─────────────────────────── */
+.fact-content { max-width: 860px; margin: 0 auto; line-height: 1.75; color: var(--text-primary); font-size: 14px; }
+.fact-content h1 { font-size: 22px; font-weight: 700; margin: 0 0 6px 0; color: var(--text-primary); letter-spacing: -0.01em; }
+.fact-content h1 + p { margin-top: 6px; color: var(--text-secondary); font-size: 14px; margin-bottom: 24px; }
+.fact-content h2 { font-size: 17px; font-weight: 700; margin: 36px 0 12px 0; padding-bottom: 6px; border-bottom: 1px solid var(--border-color); color: var(--text-primary); letter-spacing: -0.01em; }
+.fact-content h3 { font-size: 14px; font-weight: 700; margin: 24px 0 8px 0; color: var(--text-primary); text-transform: uppercase; letter-spacing: 0.04em; font-size: 12px; color: var(--text-secondary); }
+.fact-content p { margin: 10px 0; color: var(--text-primary); }
+.fact-content ul, .fact-content ol { margin: 10px 0 10px 22px; }
+.fact-content li { margin: 5px 0; }
+.fact-content a { color: var(--link-color); }
+.fact-content a:hover { text-decoration: underline; }
+
+/* ── Fact tables ─────────────────────────────────────────── */
+.table-wrap { overflow-x: auto; margin: 16px 0; }
+.fact-content table { border-collapse: collapse; width: 100%; margin: 16px 0; font-size: 13px; border-radius: 6px; overflow: hidden; border: 1px solid var(--border-color); }
+.fact-content thead { background: var(--bg-card); }
+.fact-content th { text-align: left; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; padding: 8px 14px; border-bottom: 1px solid var(--border-color); color: var(--text-secondary); }
+.fact-content td { padding: 9px 14px; border-bottom: 1px solid var(--border-light); vertical-align: top; color: var(--text-primary); }
+.fact-content tr:last-child td { border-bottom: none; }
+.fact-content tbody tr:hover { background: #f6f8fa; }
+
+/* ── Fact code ───────────────────────────────────────────── */
+.fact-content code { font-family: var(--font-mono); font-size: 12px; background: #f0f1f3; padding: 2px 6px; border-radius: 4px; color: #c7254e; }
+.fact-content pre { background: #f6f8fa; border: 1px solid var(--border-light); border-radius: 6px; padding: 14px 16px; overflow-x: auto; margin: 14px 0; }
+.fact-content pre code { background: none; color: var(--text-primary); padding: 0; border-radius: 0; }
+.fact-content hr { border: none; border-top: 1px solid var(--border-light); margin: 28px 0; }
+.fact-content strong { font-weight: 600; }
+.fact-content em { font-style: italic; }
+.fact-content blockquote { border-left: 3px solid var(--border-color); margin: 12px 0; padding: 4px 16px; color: var(--text-secondary); }
+.fact-unavailable { padding: 32px 0; }
+.fact-unavailable h3 { font-size: 16px; font-weight: 600; color: var(--text-primary); text-transform: none; letter-spacing: 0; margin: 0 0 12px 0; }
+.fact-unavailable p { margin: 0 0 8px 0; color: var(--text-secondary); }
+.fact-unavailable ol, .fact-unavailable ul { margin: 0 0 0 22px; color: var(--text-primary); }
+.fact-unavailable li { margin: 6px 0; }
+
+/* ── Mermaid diagram card ─────────────────────────────────── */
+.mermaid { background: var(--bg-card); border: 1px solid var(--border-light); border-radius: 8px; padding: 24px 16px; margin: 20px 0; overflow-x: auto; text-align: center; cursor: pointer; position: relative; }
+.mermaid:hover { border-color: var(--border-color); }
+.mermaid svg { max-width: 100%; height: auto !important; display: inline-block; }
+.mermaid-zoom-hint { position: absolute; top: 8px; right: 10px; font-size: 11px; color: var(--text-muted); opacity: 0; transition: opacity 0.15s; pointer-events: none; }
+.mermaid:hover .mermaid-zoom-hint { opacity: 1; }
+
+/* ── Diagram lightbox ────────────────────────────────────── */
+.diagram-lightbox { display: none; position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,0.7); backdrop-filter: blur(2px); align-items: center; justify-content: center; cursor: zoom-out; padding: 48px 32px; }
+.diagram-lightbox.open { display: flex; }
+.diagram-lightbox-inner { background: #ffffff; border-radius: 10px; padding: 32px; width: 88vw; max-height: 88vh; overflow: hidden; cursor: default; box-shadow: 0 24px 64px rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; }
+.diagram-lightbox-inner svg { width: 100% !important; height: auto !important; max-height: 76vh; display: block; }
+.diagram-lightbox-close { position: fixed; top: 20px; right: 24px; background: #ffffff; border: none; border-radius: 50%; width: 36px; height: 36px; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-primary); box-shadow: 0 2px 8px rgba(0,0,0,0.2); z-index: 1001; }
+.diagram-lightbox-close:hover { background: var(--bg-card); }
+.diagram-lightbox-hint { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.55); color: #ffffff; font-size: 12px; padding: 6px 14px; border-radius: 20px; pointer-events: none; white-space: nowrap; z-index: 1001; }
+</style>
+<script>
+window.__mermaidPending = [];
+window.__mermaidReady = false;
+window.__renderMermaidIn = function(container) {
+  if (container) { window.__mermaidPending.push(container); }
+};
+</script>
+<script type="module">
+import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+mermaid.initialize({ startOnLoad: false, theme: 'default', flowchart: { useMaxWidth: true }, sequence: { useMaxWidth: true } });
+
+window.__renderMermaidIn = function(container) {
+  var nodes = container ? container.querySelectorAll('.mermaid:not([data-processed])') : [];
+  if (nodes.length > 0) {
+    mermaid.run({ nodes: Array.from(nodes) }).then(function() {
+      nodes.forEach(function(node) {
+        if (!node.querySelector('.mermaid-zoom-hint')) {
+          var hint = document.createElement('span');
+          hint.className = 'mermaid-zoom-hint';
+          hint.textContent = 'Click to expand';
+          node.appendChild(hint);
+        }
+      });
+    });
+  }
+};
+
+var drained = new Set();
+(window.__mermaidPending || []).forEach(function(c) {
+  if (!drained.has(c)) { drained.add(c); window.__renderMermaidIn(c); }
+});
+window.__mermaidPending = [];
+window.__mermaidReady = true;
+
+function renderActivePanels() {
+  document.querySelectorAll('.tab-panel.active').forEach(function(p) {
+    if (!drained.has(p)) { drained.add(p); window.__renderMermaidIn(p); }
+  });
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', renderActivePanels);
+} else {
+  renderActivePanels();
+}
+</script>
+</head><body>
+<div id="diagram-lightbox" class="diagram-lightbox" role="dialog" aria-modal="true">
+  <button class="diagram-lightbox-close" id="diagram-lightbox-close" aria-label="Close">&#x2715;</button>
+  <div class="diagram-lightbox-hint">Scroll to zoom &nbsp;&middot;&nbsp; Drag to pan &nbsp;&middot;&nbsp; Double-click to reset</div>
+  <div class="diagram-lightbox-inner" id="diagram-lightbox-inner"></div>
+</div>
+<div class="main">
+<h1>spring-hateoas-examples</h1>
+<div class="report-card">
+  <h2>Component Information</h2>
+  <div class="report-card-body">
+    <div class="app-info-container">
+      <div class="app-info-column">
+        <div class="app-info-row"><span class="app-info-label">Component Name</span><span class="app-info-value">spring-hateoas-examples</span></div>
+        <div class="app-info-row"><span class="app-info-label">Java Version</span><span class="app-info-value">1.8</span></div>
+        <div class="app-info-row"><span class="app-info-label">Effort</span><span class="app-info-value" id="effort-display">M (total story points: 20)</span></div>
+      </div>
+      <div class="app-info-column">
+        <div class="app-info-row"><span class="app-info-label">Build Tools</span><span class="app-info-value">Maven</span></div>
+        <div class="app-info-row"><span class="app-info-label">Frameworks</span><span class="app-info-value">Spring Boot, Spring</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+<nav class="tab-nav">
+  <button class="tab-btn active" data-tab="tab-issues" data-tooltip="Issues detected in the source code">Issues</button>
+  <button class="tab-btn" data-tab="tab-arch" data-tooltip="How the app&#x27;s layers connect — from UI to data.">Architecture</button>
+  <button class="tab-btn" data-tab="tab-api" data-tooltip="Endpoints exposed by this app and how services communicate.">API Contracts</button>
+  <button class="tab-btn" data-tab="tab-config" data-tooltip="Environment settings, runtime profiles, and deployment manifests.">Configuration</button>
+  <button class="tab-btn" data-tab="tab-workflows" data-tooltip="Domain entities and the core flows users move through.">Business Workflows</button>
+  <button class="tab-btn" data-tab="tab-deps" data-tooltip="Libraries and frameworks this app depends on, grouped by category.">Dependencies</button>
+  <button class="tab-btn" data-tab="tab-data" data-tooltip="Database schema, entity relationships, and persistence behavior.">Data Model</button>
+</nav>
+<div id="tab-issues" class="tab-panel active">
+<div class="target-select-container">
+  <label for="target-select">Target Compute Service:</label>
+  <select id="target-select" onchange="onTargetChange(this.value)">
+    <option value="azure-aks">Azure Kubernetes Service</option>
+  </select>
+</div>
+<div class="report-card">
+  <h2>Issue Summary</h2>
+  <div class="report-card-body">
+    <div class="domain-summary-container" id="donut-container">
+      <div class="domain-summary-item">
+<svg viewBox="0 0 100 100" width="100" height="100" style="display:block;margin:0 auto;transform:rotate(-90deg);">
+  <circle cx="50" cy="50" r="35" fill="none" stroke="var(--color-mandatory)" stroke-width="15" stroke-dasharray="163.43 219.91" stroke-dashoffset="-0.00"/>
+  <circle cx="50" cy="50" r="35" fill="none" stroke="var(--color-optional)" stroke-width="15" stroke-dasharray="53.48 219.91" stroke-dashoffset="-164.93"/>
+</svg>
+
+        <h3>Cloud Readiness</h3>
+        <div class="count">4 issues</div>
+      </div>
+      <div class="domain-summary-item">
+<svg viewBox="0 0 100 100" width="100" height="100" style="display:block;margin:0 auto;transform:rotate(-90deg);">
+  <circle cx="50" cy="50" r="35" fill="none" stroke="var(--color-mandatory)" stroke-width="15" stroke-dasharray="219.91 219.91" stroke-dashoffset="-0.00"/>
+</svg>
+
+        <h3>Java Upgrade</h3>
+        <div class="count">1 issue</div>
+      </div>
+    </div>
+    <div class="criticality-legend">
+      <div class="legend-item"><span class="legend-swatch" style="background:var(--color-mandatory)"></span>Mandatory</div>
+      <div class="legend-item"><span class="legend-swatch" style="background:var(--color-potential)"></span>Potential</div>
+      <div class="legend-item"><span class="legend-swatch" style="background:var(--color-optional)"></span>Optional</div>
+    </div>
+  </div>
+</div>
+<div class="filter-bar" id="filter-bar">
+  <div class="multi-select" id="domain-ms">
+    <button class="multi-select-btn" onclick="toggleMultiSelect('domain-ms')">Domain</button>
+    <div class="multi-select-dropdown">
+      <label class="multi-select-option"><input type="checkbox" value="cloud-readiness" onchange="onMultiSelectChange('domain-ms','Domain')"/> Cloud Readiness</label>
+      <label class="multi-select-option"><input type="checkbox" value="java-upgrade" onchange="onMultiSelectChange('domain-ms','Domain')"/> Java Upgrade</label>
+    </div>
+  </div>
+  <div class="multi-select" id="criticality-ms">
+    <button class="multi-select-btn" onclick="toggleMultiSelect('criticality-ms')">Criticality</button>
+    <div class="multi-select-dropdown">
+      <label class="multi-select-option"><input type="checkbox" value="mandatory" onchange="onMultiSelectChange('criticality-ms','Criticality')"/> Mandatory</label>
+      <label class="multi-select-option"><input type="checkbox" value="optional" onchange="onMultiSelectChange('criticality-ms','Criticality')"/> Optional</label>
+    </div>
+  </div>
+  <a class="clear-filters" href="javascript:void(0)" onclick="clearAllFilters()">Clear all</a>
+</div>
+<div class="issue-section" data-domain="cloud-readiness">
+  <h2>Cloud Readiness</h2>
+  <table class="issue-table">
+    <colgroup><col class="col-issue"/><col class="col-criticality"/><col class="col-storypoint"/></colgroup>
+    <thead><tr><th>Issue Category</th><th>Criticality</th><th>Story Point</th></tr></thead>
+    <tbody>
+    <tr class="issue-row" data-criticality="mandatory" data-targets='{&quot;azure-aks&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;mandatory&quot;},&quot;azure-appservice&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;mandatory&quot;},&quot;azure-container-apps&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;mandatory&quot;}}' data-default-effort="3" data-default-severity="mandatory" data-rule="unsecure-network-protocol-00000" onclick="toggleRow('row-cloudreadiness-0', this)" style="cursor:pointer;">
+      <td style="white-space:normal;"><div class="issue-title-cell"><button class="expand-btn" id="btn-row-cloudreadiness-0">&#x276F;</button> Use of unsecured network protocols or URI libraries</div></td>
+      <td class="crit-cell"><span class="crit-label"><span class="crit-square crit-square-mandatory"></span>Mandatory</span></td>
+      <td class="sp-cell">3</td>
+    </tr>
+    <tr class="detail-row" id="row-cloudreadiness-0" style="display:none;">
+      <td colspan="3">
+        <div class="detail-content">
+          <div class="file-list">
+            <table><colgroup><col style="width:70%"/><col style="width:30%"/></colgroup>
+            <thead><tr><th>File</th><th>Position</th></tr></thead><tbody>
+            <tr><td><span class="file-path" title="spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java">spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java</span></td><td><span class="position">Line 50</span></td></tr>
+            <tr><td><span class="file-path" title="spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java">spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java</span></td><td><span class="position">Line 51</span></td></tr>
+            <tr><td><span class="file-path" title="spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java">spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java</span></td><td><span class="position">Line 58</span></td></tr>
+            <tr><td><span class="file-path" title="spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java">spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java</span></td><td><span class="position">Line 59</span></td></tr>
+            <tr><td><span class="file-path" title="spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java">spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java</span></td><td><span class="position">Line 60</span></td></tr>
+            <tr><td><span class="file-path" title="spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java">spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java</span></td><td><span class="position">Line 61</span></td></tr>
+            <tr><td><span class="file-path" title="spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java">spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java</span></td><td><span class="position">Line 64</span></td></tr>
+            <tr><td><span class="file-path" title="spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java">spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java</span></td><td><span class="position">Line 65</span></td></tr>
+            <tr><td><span class="file-path" title="spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java">spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java</span></td><td><span class="position">Line 66</span></td></tr>
+            <tr><td><span class="file-path" title="spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java">spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java</span></td><td><span class="position">Line 67</span></td></tr>
+            <tr><td><span class="file-path" title="spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java">spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java</span></td><td><span class="position">Line 68</span></td></tr>
+            <tr><td><span class="file-path" title="spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java">spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java</span></td><td><span class="position">Line 69</span></td></tr>
+            <tr><td><span class="file-path" title="spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java">spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java</span></td><td><span class="position">Line 112</span></td></tr>
+            <tr><td><span class="file-path" title="spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java">spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java</span></td><td><span class="position">Line 113</span></td></tr>
+            <tr><td><span class="file-path" title="spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java">spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java</span></td><td><span class="position">Line 114</span></td></tr>
+            <tr><td><span class="file-path" title="affordances/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java">affordances/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java</span></td><td><span class="position">Line 72</span></td></tr>
+            <tr><td><span class="file-path" title="affordances/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java">affordances/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java</span></td><td><span class="position">Line 73</span></td></tr>
+            <tr><td><span class="file-path" title="affordances/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java">affordances/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java</span></td><td><span class="position">Line 84</span></td></tr>
+            <tr><td><span class="file-path" title="affordances/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java">affordances/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java</span></td><td><span class="position">Line 85</span></td></tr>
+            <tr><td><span class="file-path" title="affordances/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java">affordances/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java</span></td><td><span class="position">Line 93</span></td></tr>
+            <tr><td><span class="file-path" title="affordances/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java">affordances/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java</span></td><td><span class="position">Line 117</span></td></tr>
+            <tr><td><span class="file-path" title="affordances/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java">affordances/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java</span></td><td><span class="position">Line 118</span></td></tr>
+            <tr><td><span class="file-path" title="api-evolution/new-client/src/main/java/org/springframework/hateoas/examples/HomeController.java">api-evolution/new-client/src/main/java/org/springframework/hateoas/examples/HomeController.java</span></td><td><span class="position">Line 43</span></td></tr>
+            <tr><td><span class="file-path" title="basics/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java">basics/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java</span></td><td><span class="position">Line 67</span></td></tr>
+            <tr><td><span class="file-path" title="basics/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java">basics/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java</span></td><td><span class="position">Line 68</span></td></tr>
+            <tr><td><span class="file-path" title="basics/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java">basics/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java</span></td><td><span class="position">Line 73</span></td></tr>
+            <tr><td><span class="file-path" title="basics/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java">basics/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java</span></td><td><span class="position">Line 74</span></td></tr>
+            <tr><td><span class="file-path" title="basics/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java">basics/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java</span></td><td><span class="position">Line 75</span></td></tr>
+            <tr><td><span class="file-path" title="simplified/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java">simplified/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java</span></td><td><span class="position">Line 65</span></td></tr>
+            <tr><td><span class="file-path" title="simplified/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java">simplified/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java</span></td><td><span class="position">Line 66</span></td></tr>
+            <tr><td><span class="file-path" title="simplified/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java">simplified/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java</span></td><td><span class="position">Line 71</span></td></tr>
+            <tr><td><span class="file-path" title="simplified/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java">simplified/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java</span></td><td><span class="position">Line 72</span></td></tr>
+            <tr><td><span class="file-path" title="simplified/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java">simplified/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java</span></td><td><span class="position">Line 73</span></td></tr>
+            <tr><td><span class="file-path" title="api-evolution/original-client/src/main/java/org/springframework/hateoas/examples/HomeController.java">api-evolution/original-client/src/main/java/org/springframework/hateoas/examples/HomeController.java</span></td><td><span class="position">Line 43</span></td></tr>
+            </tbody></table>
+          </div>
+          <div class="explanation-panel">
+            <h4>Explanation</h4>
+            <div><p>Using secured protocols such as HTTPS and SFTP (over HTTP and FTP) should now be the norm as applications are more and more exposed and interconnected. <br/>This CloudReady patterns looks for unescured URI in the source code or deprecated URI libraries. <br/>Ideally, URLs should be replaced in your source code by secured protocols HTTPS and SFTP (and ensure the infrastructure implements these protocols for the resources your application calls, uses or references).</p></div>
+          </div>
+        </div>
+      </td>
+    </tr>
+    <tr class="issue-row" data-criticality="mandatory" data-targets='{&quot;azure-aks&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;mandatory&quot;},&quot;azure-appservice&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;mandatory&quot;},&quot;azure-container-apps&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;mandatory&quot;}}' data-default-effort="3" data-default-severity="mandatory" data-rule="localhost-http-00001" onclick="toggleRow('row-cloudreadiness-1', this)" style="cursor:pointer;">
+      <td style="white-space:normal;"><div class="issue-title-cell"><button class="expand-btn" id="btn-row-cloudreadiness-1">&#x276F;</button> Local HTTP Calls</div></td>
+      <td class="crit-cell"><span class="crit-label"><span class="crit-square crit-square-mandatory"></span>Mandatory</span></td>
+      <td class="sp-cell">3</td>
+    </tr>
+    <tr class="detail-row" id="row-cloudreadiness-1" style="display:none;">
+      <td colspan="3">
+        <div class="detail-content">
+          <div class="file-list">
+            <table><colgroup><col style="width:70%"/><col style="width:30%"/></colgroup>
+            <thead><tr><th>File</th><th>Position</th></tr></thead><tbody>
+            <tr><td><span class="file-path" title="spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java">spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java</span></td><td><span class="position">Line 50</span></td></tr>
+            <tr><td><span class="file-path" title="spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java">spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java</span></td><td><span class="position">Line 51</span></td></tr>
+            <tr><td><span class="file-path" title="spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java">spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java</span></td><td><span class="position">Line 58</span></td></tr>
+            <tr><td><span class="file-path" title="spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java">spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java</span></td><td><span class="position">Line 59</span></td></tr>
+            <tr><td><span class="file-path" title="spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java">spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java</span></td><td><span class="position">Line 60</span></td></tr>
+            <tr><td><span class="file-path" title="spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java">spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java</span></td><td><span class="position">Line 61</span></td></tr>
+            <tr><td><span class="file-path" title="spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java">spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java</span></td><td><span class="position">Line 64</span></td></tr>
+            <tr><td><span class="file-path" title="spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java">spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java</span></td><td><span class="position">Line 65</span></td></tr>
+            <tr><td><span class="file-path" title="spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java">spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java</span></td><td><span class="position">Line 66</span></td></tr>
+            <tr><td><span class="file-path" title="spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java">spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java</span></td><td><span class="position">Line 67</span></td></tr>
+            <tr><td><span class="file-path" title="spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java">spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java</span></td><td><span class="position">Line 68</span></td></tr>
+            <tr><td><span class="file-path" title="spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java">spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java</span></td><td><span class="position">Line 69</span></td></tr>
+            <tr><td><span class="file-path" title="spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java">spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java</span></td><td><span class="position">Line 112</span></td></tr>
+            <tr><td><span class="file-path" title="spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java">spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java</span></td><td><span class="position">Line 113</span></td></tr>
+            <tr><td><span class="file-path" title="spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java">spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java</span></td><td><span class="position">Line 114</span></td></tr>
+            <tr><td><span class="file-path" title="affordances/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java">affordances/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java</span></td><td><span class="position">Line 72</span></td></tr>
+            <tr><td><span class="file-path" title="affordances/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java">affordances/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java</span></td><td><span class="position">Line 73</span></td></tr>
+            <tr><td><span class="file-path" title="affordances/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java">affordances/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java</span></td><td><span class="position">Line 84</span></td></tr>
+            <tr><td><span class="file-path" title="affordances/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java">affordances/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java</span></td><td><span class="position">Line 85</span></td></tr>
+            <tr><td><span class="file-path" title="affordances/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java">affordances/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java</span></td><td><span class="position">Line 93</span></td></tr>
+            <tr><td><span class="file-path" title="affordances/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java">affordances/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java</span></td><td><span class="position">Line 117</span></td></tr>
+            <tr><td><span class="file-path" title="affordances/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java">affordances/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java</span></td><td><span class="position">Line 118</span></td></tr>
+            <tr><td><span class="file-path" title="api-evolution/new-client/src/main/java/org/springframework/hateoas/examples/HomeController.java">api-evolution/new-client/src/main/java/org/springframework/hateoas/examples/HomeController.java</span></td><td><span class="position">Line 43</span></td></tr>
+            <tr><td><span class="file-path" title="api-evolution/original-client/src/main/java/org/springframework/hateoas/examples/HomeController.java">api-evolution/original-client/src/main/java/org/springframework/hateoas/examples/HomeController.java</span></td><td><span class="position">Line 43</span></td></tr>
+            <tr><td><span class="file-path" title="basics/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java">basics/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java</span></td><td><span class="position">Line 67</span></td></tr>
+            <tr><td><span class="file-path" title="basics/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java">basics/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java</span></td><td><span class="position">Line 68</span></td></tr>
+            <tr><td><span class="file-path" title="basics/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java">basics/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java</span></td><td><span class="position">Line 73</span></td></tr>
+            <tr><td><span class="file-path" title="basics/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java">basics/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java</span></td><td><span class="position">Line 74</span></td></tr>
+            <tr><td><span class="file-path" title="basics/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java">basics/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java</span></td><td><span class="position">Line 75</span></td></tr>
+            <tr><td><span class="file-path" title="simplified/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java">simplified/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java</span></td><td><span class="position">Line 65</span></td></tr>
+            <tr><td><span class="file-path" title="simplified/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java">simplified/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java</span></td><td><span class="position">Line 66</span></td></tr>
+            <tr><td><span class="file-path" title="simplified/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java">simplified/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java</span></td><td><span class="position">Line 71</span></td></tr>
+            <tr><td><span class="file-path" title="simplified/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java">simplified/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java</span></td><td><span class="position">Line 72</span></td></tr>
+            <tr><td><span class="file-path" title="simplified/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java">simplified/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java</span></td><td><span class="position">Line 73</span></td></tr>
+            </tbody></table>
+          </div>
+          <div class="explanation-panel">
+            <h4>Explanation</h4>
+            <div><p>The app is trying to access local resource by HTTP, please try to migrate the resource to cloud</p></div>
+          </div>
+        </div>
+      </td>
+    </tr>
+    <tr class="issue-row" data-criticality="mandatory" data-targets='{&quot;azure-aks&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;mandatory&quot;},&quot;azure-container-apps&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;mandatory&quot;}}' data-default-effort="3" data-default-severity="mandatory" data-rule="dockerfile-00000" onclick="toggleRow('row-cloudreadiness-2', this)" style="cursor:pointer;">
+      <td style="white-space:normal;"><div class="issue-title-cell"><button class="expand-btn" id="btn-row-cloudreadiness-2">&#x276F;</button> No Dockerfile found</div></td>
+      <td class="crit-cell"><span class="crit-label"><span class="crit-square crit-square-mandatory"></span>Mandatory</span></td>
+      <td class="sp-cell">3</td>
+    </tr>
+    <tr class="detail-row" id="row-cloudreadiness-2" style="display:none;">
+      <td colspan="3">
+        <div class="detail-content">
+          <div class="file-list">
+            <table><colgroup><col style="width:70%"/><col style="width:30%"/></colgroup>
+            <thead><tr><th>File</th><th>Position</th></tr></thead><tbody>
+            </tbody></table>
+          </div>
+          <div class="explanation-panel">
+            <h4>Explanation</h4>
+            <div><p>No Dockerfile was found in the project. This suggests the application may not yet be containerized. <br/>Consider creating a Dockerfile to enable container-based replatforming to Azure services such as Azure Container Apps or AKS.</p></div>
+          </div>
+        </div>
+      </td>
+    </tr>
+    <tr class="issue-row" data-criticality="optional" data-targets='{&quot;azure-aks&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;optional&quot;},&quot;azure-appservice&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;optional&quot;},&quot;azure-container-apps&quot;:{&quot;effort&quot;:3,&quot;severity&quot;:&quot;optional&quot;}}' data-default-effort="3" data-default-severity="optional" data-rule="hardcoded-urls-00001" onclick="toggleRow('row-cloudreadiness-3', this)" style="cursor:pointer;">
+      <td style="white-space:normal;"><div class="issue-title-cell"><button class="expand-btn" id="btn-row-cloudreadiness-3">&#x276F;</button> Avoid using hardcoded URLs (HTTP protocol) in source code</div></td>
+      <td class="crit-cell"><span class="crit-label"><span class="crit-square crit-square-optional"></span>Optional</span></td>
+      <td class="sp-cell">3</td>
+    </tr>
+    <tr class="detail-row" id="row-cloudreadiness-3" style="display:none;">
+      <td colspan="3">
+        <div class="detail-content">
+          <div class="file-list">
+            <table><colgroup><col style="width:70%"/><col style="width:30%"/></colgroup>
+            <thead><tr><th>File</th><th>Position</th></tr></thead><tbody>
+            <tr><td><span class="file-path" title="spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java">spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java</span></td><td><span class="position">Line 50</span></td></tr>
+            <tr><td><span class="file-path" title="spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java">spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java</span></td><td><span class="position">Line 51</span></td></tr>
+            <tr><td><span class="file-path" title="spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java">spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java</span></td><td><span class="position">Line 58</span></td></tr>
+            <tr><td><span class="file-path" title="spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java">spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java</span></td><td><span class="position">Line 59</span></td></tr>
+            <tr><td><span class="file-path" title="spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java">spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java</span></td><td><span class="position">Line 60</span></td></tr>
+            <tr><td><span class="file-path" title="spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java">spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java</span></td><td><span class="position">Line 61</span></td></tr>
+            <tr><td><span class="file-path" title="spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java">spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java</span></td><td><span class="position">Line 64</span></td></tr>
+            <tr><td><span class="file-path" title="spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java">spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java</span></td><td><span class="position">Line 65</span></td></tr>
+            <tr><td><span class="file-path" title="spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java">spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java</span></td><td><span class="position">Line 66</span></td></tr>
+            <tr><td><span class="file-path" title="spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java">spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java</span></td><td><span class="position">Line 67</span></td></tr>
+            <tr><td><span class="file-path" title="spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java">spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java</span></td><td><span class="position">Line 68</span></td></tr>
+            <tr><td><span class="file-path" title="spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java">spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java</span></td><td><span class="position">Line 69</span></td></tr>
+            <tr><td><span class="file-path" title="spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java">spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java</span></td><td><span class="position">Line 112</span></td></tr>
+            <tr><td><span class="file-path" title="spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java">spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java</span></td><td><span class="position">Line 113</span></td></tr>
+            <tr><td><span class="file-path" title="spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java">spring-hateoas-and-spring-data-rest/src/test/java/org/springframework/hateoas/examples/OrderIntegrationTest.java</span></td><td><span class="position">Line 114</span></td></tr>
+            <tr><td><span class="file-path" title="affordances/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java">affordances/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java</span></td><td><span class="position">Line 72</span></td></tr>
+            <tr><td><span class="file-path" title="affordances/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java">affordances/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java</span></td><td><span class="position">Line 73</span></td></tr>
+            <tr><td><span class="file-path" title="affordances/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java">affordances/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java</span></td><td><span class="position">Line 84</span></td></tr>
+            <tr><td><span class="file-path" title="affordances/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java">affordances/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java</span></td><td><span class="position">Line 85</span></td></tr>
+            <tr><td><span class="file-path" title="affordances/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java">affordances/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java</span></td><td><span class="position">Line 93</span></td></tr>
+            <tr><td><span class="file-path" title="affordances/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java">affordances/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java</span></td><td><span class="position">Line 117</span></td></tr>
+            <tr><td><span class="file-path" title="affordances/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java">affordances/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java</span></td><td><span class="position">Line 118</span></td></tr>
+            <tr><td><span class="file-path" title="api-evolution/new-client/src/main/java/org/springframework/hateoas/examples/HomeController.java">api-evolution/new-client/src/main/java/org/springframework/hateoas/examples/HomeController.java</span></td><td><span class="position">Line 43</span></td></tr>
+            <tr><td><span class="file-path" title="api-evolution/original-client/src/main/java/org/springframework/hateoas/examples/HomeController.java">api-evolution/original-client/src/main/java/org/springframework/hateoas/examples/HomeController.java</span></td><td><span class="position">Line 43</span></td></tr>
+            <tr><td><span class="file-path" title="simplified/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java">simplified/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java</span></td><td><span class="position">Line 65</span></td></tr>
+            <tr><td><span class="file-path" title="simplified/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java">simplified/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java</span></td><td><span class="position">Line 66</span></td></tr>
+            <tr><td><span class="file-path" title="simplified/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java">simplified/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java</span></td><td><span class="position">Line 71</span></td></tr>
+            <tr><td><span class="file-path" title="simplified/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java">simplified/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java</span></td><td><span class="position">Line 72</span></td></tr>
+            <tr><td><span class="file-path" title="simplified/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java">simplified/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java</span></td><td><span class="position">Line 73</span></td></tr>
+            <tr><td><span class="file-path" title="basics/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java">basics/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java</span></td><td><span class="position">Line 67</span></td></tr>
+            <tr><td><span class="file-path" title="basics/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java">basics/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java</span></td><td><span class="position">Line 68</span></td></tr>
+            <tr><td><span class="file-path" title="basics/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java">basics/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java</span></td><td><span class="position">Line 73</span></td></tr>
+            <tr><td><span class="file-path" title="basics/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java">basics/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java</span></td><td><span class="position">Line 74</span></td></tr>
+            <tr><td><span class="file-path" title="basics/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java">basics/src/test/java/org/springframework/hateoas/examples/EmployeeControllerTests.java</span></td><td><span class="position">Line 75</span></td></tr>
+            </tbody></table>
+          </div>
+          <div class="explanation-panel">
+            <h4>Explanation</h4>
+            <div><p>This patterns verifies in source code and configuration files the presence of hardcoded URLs using the HTTP protocol (HTTP/HTTPS). This URL would need to be replaced by the new resource&#x27;s URL during the Cloud migration, if any change occured.</p></div>
+          </div>
+        </div>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+</div>
+<div class="issue-section" data-domain="java-upgrade">
+  <h2>Java Upgrade</h2>
+  <table class="issue-table">
+    <colgroup><col class="col-issue"/><col class="col-criticality"/><col class="col-storypoint"/></colgroup>
+    <thead><tr><th>Issue Category</th><th>Criticality</th><th>Story Point</th></tr></thead>
+    <tbody>
+    <tr class="issue-row" data-criticality="mandatory" data-targets='{&quot;azure-aks&quot;:{&quot;effort&quot;:8,&quot;severity&quot;:&quot;mandatory&quot;},&quot;azure-appservice&quot;:{&quot;effort&quot;:8,&quot;severity&quot;:&quot;mandatory&quot;},&quot;azure-container-apps&quot;:{&quot;effort&quot;:8,&quot;severity&quot;:&quot;mandatory&quot;}}' data-default-effort="8" data-default-severity="mandatory" data-rule="azure-java-version-01000" onclick="toggleRow('row-javaupgrade-0', this)" style="cursor:pointer;">
+      <td style="white-space:normal;"><div class="issue-title-cell"><button class="expand-btn" id="btn-row-javaupgrade-0">&#x276F;</button> Java Version Has Reached the End of Support</div></td>
+      <td class="crit-cell"><span class="crit-label"><span class="crit-square crit-square-mandatory"></span>Mandatory</span></td>
+      <td class="sp-cell">8</td>
+    </tr>
+    <tr class="detail-row" id="row-javaupgrade-0" style="display:none;">
+      <td colspan="3">
+        <div class="detail-content">
+          <div class="file-list">
+            <table><colgroup><col style="width:70%"/><col style="width:30%"/></colgroup>
+            <thead><tr><th>File</th><th>Position</th></tr></thead><tbody>
+            <tr><td><span class="file-path" title="pom.xml">pom.xml</span></td><td><span class="position">Line 73</span></td></tr>
+            </tbody></table>
+          </div>
+          <div class="explanation-panel">
+            <h4>Explanation</h4>
+            <div><p>The application is using a Java version that has reached the end of support. It is strongly recommended to plan and execute a migration strategy to upgrade your application to a supported Java version.<br/>Supported Java versions receive long-term support (LTS) from the Java community, including bug fixes and updates. Migrating to a supported version provides you with a stable and well-maintained platform for your application.</p></div>
+          </div>
+        </div>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+</div>
+</div><!-- #tab-issues -->
+<div id="tab-arch" class="tab-panel">
+  <div class="fact-content"><h1 id="architecture-diagram">Architecture Diagram</h1>
+<p>This document describes the architecture of the Spring HATEOAS Examples project — a multi-module Spring Boot application that demonstrates hypermedia-driven REST APIs using Spring HATEOAS.</p>
+<h2 id="application-architecture">Application Architecture</h2>
+<div class="mermaid">
+flowchart TD
+    subgraph Client["Client Layer"]
+        HTTPClient["HTTP Client / Browser"]
+        APIClient["API Evolution Clients"]
+    end
+
+    subgraph App["Application Layer - Spring Boot 2.3.4"]
+        subgraph Modules["Example Modules"]
+            Basics["basics - Basic HATEOAS"]
+            Hypermedia["hypermedia - Full Hypermedia"]
+            Affordances["affordances - HAL-FORMS"]
+            Simplified["simplified - Simplified Assembler"]
+            ApiEvolution["api-evolution - Server and Client"]
+            DataRest["spring-data-rest - Spring Data REST"]
+        end
+        Commons["commons - Shared Utilities"]
+        WebMVC["Spring Web MVC"]
+        HATEOAS["Spring HATEOAS"]
+    end
+
+    subgraph Data["Data Layer"]
+        JPA["Spring Data JPA / Hibernate"]
+        H2[("H2 In-Memory Database")]
+    end
+
+    HTTPClient -->|"HTTP REST requests"| WebMVC
+    APIClient -->|"HAL / HAL-FORMS"| WebMVC
+    WebMVC --> HATEOAS
+    Basics --> Commons
+    Hypermedia --> Commons
+    Affordances --> Commons
+    Simplified --> Commons
+    ApiEvolution --> Commons
+    DataRest --> Commons
+    HATEOAS -->|"link building"| WebMVC
+    WebMVC -->|"data access"| JPA
+    JPA -->|"SQL queries"| H2
+</div>
+<h3 id="technology-stack-summary">Technology Stack Summary</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Layer</th><th>Technology</th><th>Version</th><th>Purpose</th>
+</tr></thead><tbody>
+<tr><td>Presentation</td><td>Spring Web MVC</td><td>2.3.4 (Boot-managed)</td><td>REST controller layer and HTTP handling</td></tr>
+<tr><td>Hypermedia</td><td>Spring HATEOAS</td><td>Boot-managed</td><td>HAL, HAL-FORMS link building and resource assembly</td></tr>
+<tr><td>Data Access</td><td>Spring Data JPA</td><td>Boot-managed</td><td>Repository abstraction over Hibernate</td></tr>
+<tr><td>ORM</td><td>Hibernate</td><td>Boot-managed</td><td>JPA implementation</td></tr>
+<tr><td>Database</td><td>H2</td><td>Boot-managed</td><td>In-memory relational database for examples</td></tr>
+<tr><td>Utilities</td><td>Lombok</td><td>Boot-managed</td><td>Boilerplate reduction (getters, setters, constructors)</td></tr>
+<tr><td>Utilities</td><td>Evo Inflector</td><td>1.2.2</td><td>English word pluralization for link relation names</td></tr>
+<tr><td>Runtime</td><td>Spring Boot</td><td>2.3.4.RELEASE</td><td>Application hosting and auto-configuration</td></tr>
+<tr><td>Java</td><td>Java SE</td><td>1.8</td><td>Language runtime</td></tr>
+</tbody></table></div>
+<h3 id="data-storage-external-services">Data Storage & External Services</h3>
+<p>The project uses a single H2 in-memory database for all example modules, configured automatically by Spring Boot. There are no external services, message brokers, or caches. Each Spring Boot application initializes its own embedded H2 instance on startup via <code>CommandLineRunner</code> / <code>ApplicationListener</code>-based <code>DatabaseLoader</code> beans. The <code>spring-hateoas-and-spring-data-rest</code> module exposes a Spring Data REST base path at <code>/api</code> (port 9000).</p>
+<h3 id="key-architectural-decisions">Key Architectural Decisions</h3>
+<ul>
+<li><strong>HATEOAS-first design</strong>: All REST resources are enriched with hypermedia links using <code>RepresentationModelAssembler</code> implementations, making APIs self-descriptive and enabling client-agnostic navigation.</li>
+<li><strong>Multi-module Maven project</strong>: Each example is an independent Spring Boot application within its own sub-module, sharing a common <code>commons</code> library that provides <code>SimpleIdentifiableRepresentationModelAssembler</code>.</li>
+<li><strong>Embedded H2 for simplicity</strong>: In-memory H2 database is used across all modules to keep the examples self-contained and runnable without external infrastructure.</li>
+</ul>
+<h2 id="component-relationships">Component Relationships</h2>
+<div class="mermaid">
+flowchart LR
+    subgraph Presentation["Presentation"]
+        EmployeeCtrl["EmployeeController"]
+        ManagerCtrl["ManagerController"]
+        SupervisorCtrl["SupervisorController"]
+        RootCtrl["RootController"]
+        OrderCtrl["CustomOrderController"]
+    end
+
+    subgraph Assembly["Resource Assembly"]
+        EmpAssembler["EmployeeRepresentationModelAssembler"]
+        MgrAssembler["ManagerRepresentationModelAssembler"]
+        EmpMgrAssembler["EmployeeWithManagerResourceAssembler"]
+        SimpleAssembler["SimpleIdentifiableRepresentationModelAssembler"]
+    end
+
+    subgraph DataAccess["Data Access"]
+        EmpRepo["EmployeeRepository"]
+        MgrRepo["ManagerRepository"]
+        OrderRepo["OrderRepository"]
+    end
+
+    subgraph Domain["Domain"]
+        Employee["Employee (JPA Entity)"]
+        Manager["Manager (JPA Entity)"]
+        Order["Order (JPA Entity)"]
+        DatabaseLoader["DatabaseLoader"]
+    end
+
+    subgraph Config["Configuration"]
+        HypermediaConfig["HypermediaConfiguration (HAL-FORMS)"]
+    end
+
+    EmployeeCtrl -->|"delegates"| EmpAssembler
+    EmployeeCtrl -->|"queries"| EmpRepo
+    ManagerCtrl -->|"delegates"| MgrAssembler
+    ManagerCtrl -->|"queries"| MgrRepo
+    SupervisorCtrl -->|"queries"| EmpRepo
+    SupervisorCtrl -->|"queries"| MgrRepo
+    OrderCtrl -->|"queries"| OrderRepo
+    EmpAssembler -->|"extends"| SimpleAssembler
+    MgrAssembler -->|"extends"| SimpleAssembler
+    EmpMgrAssembler -->|"extends"| SimpleAssembler
+    EmpRepo -->|"manages"| Employee
+    MgrRepo -->|"manages"| Manager
+    OrderRepo -->|"manages"| Order
+    DatabaseLoader -->|"initializes"| EmpRepo
+    DatabaseLoader -->|"initializes"| MgrRepo
+    HypermediaConfig -.->|"configures"| Presentation
+</div>
+<h3 id="component-inventory">Component Inventory</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Component</th><th>Layer</th><th>Type</th><th>Responsibility</th>
+</tr></thead><tbody>
+<tr><td>EmployeeController</td><td>Presentation</td><td>REST Controller</td><td>Handles CRUD endpoints for Employee resources with HATEOAS links</td></tr>
+<tr><td>ManagerController</td><td>Presentation</td><td>REST Controller</td><td>Handles manager retrieval and related employee lookup</td></tr>
+<tr><td>SupervisorController</td><td>Presentation</td><td>REST Controller</td><td>Handles supervisor-level employee/manager queries</td></tr>
+<tr><td>RootController</td><td>Presentation</td><td>REST Controller</td><td>Provides root API entry-point with discovery links</td></tr>
+<tr><td>CustomOrderController</td><td>Presentation</td><td>BasePathAwareController</td><td>Handles order lifecycle state transitions (pay, cancel, fulfill)</td></tr>
+<tr><td>EmployeeRepresentationModelAssembler</td><td>Resource Assembly</td><td>Component</td><td>Converts Employee entities to HAL EntityModel with links</td></tr>
+<tr><td>ManagerRepresentationModelAssembler</td><td>Resource Assembly</td><td>Component</td><td>Converts Manager entities to HAL EntityModel with links</td></tr>
+<tr><td>EmployeeWithManagerResourceAssembler</td><td>Resource Assembly</td><td>Component</td><td>Assembles composite EmployeeWithManager view models</td></tr>
+<tr><td>SimpleIdentifiableRepresentationModelAssembler</td><td>Resource Assembly</td><td>Base Class (commons)</td><td>Shared base that auto-generates self and collection links</td></tr>
+<tr><td>EmployeeRepository</td><td>Data Access</td><td>JPA Repository</td><td>Spring Data CRUD repository for Employee entities</td></tr>
+<tr><td>ManagerRepository</td><td>Data Access</td><td>JPA Repository</td><td>Spring Data CRUD repository for Manager entities</td></tr>
+<tr><td>OrderRepository</td><td>Data Access</td><td>JPA Repository</td><td>Spring Data CRUD repository for Order entities</td></tr>
+<tr><td>Employee</td><td>Domain</td><td>JPA Entity</td><td>Domain object with id, firstName, lastName, role fields</td></tr>
+<tr><td>Manager</td><td>Domain</td><td>JPA Entity</td><td>Domain object representing an employee manager</td></tr>
+<tr><td>Order</td><td>Domain</td><td>JPA Entity</td><td>Domain object with order status state machine</td></tr>
+<tr><td>DatabaseLoader</td><td>Domain</td><td>CommandLineRunner</td><td>Seeds H2 database with sample data on startup</td></tr>
+<tr><td>HypermediaConfiguration</td><td>Configuration</td><td>Spring Configuration</td><td>Enables HAL-FORMS hypermedia type for affordances module</td></tr>
+</tbody></table></div></div>
+</div>
+<div id="tab-api" class="tab-panel">
+  <div class="fact-content"><h1 id="api-service-communication-contracts">API & Service Communication Contracts</h1>
+<p>This project exposes hypermedia-driven REST APIs across six independent Spring Boot example modules, demonstrating progressively advanced Spring HATEOAS patterns with a total of approximately 25 documented endpoints.</p>
+<h2 id="service-catalog">Service Catalog</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Service</th><th>Port</th><th>Category</th><th>Purpose</th>
+</tr></thead><tbody>
+<tr><td>basics</td><td>8080 (default)</td><td>Business</td><td>Minimal Spring HATEOAS example with GET-only employee endpoints</td></tr>
+<tr><td>hypermedia</td><td>8080 (default)</td><td>Business</td><td>Full hypermedia example with employees, managers, supervisors, and root link discovery</td></tr>
+<tr><td>affordances</td><td>8080 (default)</td><td>Business</td><td>HAL-FORMS example with affordances, full CRUD on employees</td></tr>
+<tr><td>simplified</td><td>8080 (default)</td><td>Business</td><td>Simplified assembler pattern with full CRUD on employees</td></tr>
+<tr><td>api-evolution/original-server</td><td>9000</td><td>Business</td><td>Original API server (v1); exposes /employees for evolution demo</td></tr>
+<tr><td>api-evolution/new-server</td><td>9000</td><td>Business</td><td>Evolved API server (v2) demonstrating backward-compatible API changes</td></tr>
+<tr><td>api-evolution/original-client</td><td>8080 (default)</td><td>Business</td><td>Client app consuming original-server via hypermedia REST</td></tr>
+<tr><td>api-evolution/new-client</td><td>8080 (default)</td><td>Business</td><td>Client app consuming new-server via hypermedia REST</td></tr>
+<tr><td>spring-data-rest</td><td>9000</td><td>Business</td><td>Spring Data REST module with custom order state-machine transitions</td></tr>
+</tbody></table></div>
+<h2 id="api-endpoints-inventory">API Endpoints Inventory</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Service</th><th>Method</th><th>Path</th><th>Request Type</th><th>Response Type</th>
+</tr></thead><tbody>
+<tr><td>basics</td><td>GET</td><td>/employees</td><td>—</td><td>CollectionModel of EntityModel of Employee</td></tr>
+<tr><td>basics</td><td>GET</td><td>/employees/{id}</td><td>Path: id (long)</td><td>EntityModel of Employee or 404</td></tr>
+<tr><td>hypermedia</td><td>GET</td><td>/</td><td>—</td><td>Root links (discovery)</td></tr>
+<tr><td>hypermedia</td><td>GET</td><td>/employees</td><td>—</td><td>CollectionModel of EntityModel of Employee</td></tr>
+<tr><td>hypermedia</td><td>GET</td><td>/employees/{id}</td><td>Path: id (long)</td><td>EntityModel of Employee or 404</td></tr>
+<tr><td>hypermedia</td><td>GET</td><td>/employees/detailed</td><td>—</td><td>CollectionModel of EntityModel of EmployeeWithManager</td></tr>
+<tr><td>hypermedia</td><td>GET</td><td>/employees/{id}/detailed</td><td>Path: id (long)</td><td>EntityModel of EmployeeWithManager or 404</td></tr>
+<tr><td>hypermedia</td><td>GET</td><td>/managers</td><td>—</td><td>CollectionModel of EntityModel of Manager</td></tr>
+<tr><td>hypermedia</td><td>GET</td><td>/managers/{id}</td><td>Path: id (long)</td><td>EntityModel of Manager or 404</td></tr>
+<tr><td>hypermedia</td><td>GET</td><td>/managers/{id}/employees</td><td>Path: id (long)</td><td>CollectionModel of EntityModel of Employee</td></tr>
+<tr><td>hypermedia</td><td>GET</td><td>/employees/{id}/manager</td><td>Path: id (long)</td><td>EntityModel of Manager or 404</td></tr>
+<tr><td>hypermedia</td><td>GET</td><td>/supervisors/{id}</td><td>Path: id (long)</td><td>EntityModel of Supervisor or 404</td></tr>
+<tr><td>affordances</td><td>GET</td><td>/employees</td><td>—</td><td>CollectionModel of EntityModel of Employee (with HAL-FORMS affordances)</td></tr>
+<tr><td>affordances</td><td>POST</td><td>/employees</td><td>Body: Employee</td><td>EntityModel of Employee (created)</td></tr>
+<tr><td>affordances</td><td>GET</td><td>/employees/{id}</td><td>Path: id (long)</td><td>EntityModel of Employee or 404</td></tr>
+<tr><td>affordances</td><td>PUT</td><td>/employees/{id}</td><td>Path: id (long), Body: Employee</td><td>EntityModel of Employee (updated)</td></tr>
+<tr><td>affordances</td><td>DELETE</td><td>/employees/{id}</td><td>Path: id (long)</td><td>204 No Content</td></tr>
+<tr><td>simplified</td><td>GET</td><td>/employees</td><td>—</td><td>CollectionModel of EntityModel of Employee</td></tr>
+<tr><td>simplified</td><td>POST</td><td>/employees</td><td>Body: Employee</td><td>EntityModel of Employee (created)</td></tr>
+<tr><td>simplified</td><td>GET</td><td>/employees/{id}</td><td>Path: id (long)</td><td>EntityModel of Employee or 404</td></tr>
+<tr><td>simplified</td><td>PUT</td><td>/employees/{id}</td><td>Path: id (long), Body: Employee</td><td>EntityModel of Employee (updated)</td></tr>
+<tr><td>api-evolution/original-server</td><td>GET</td><td>/</td><td>—</td><td>Root links</td></tr>
+<tr><td>api-evolution/original-server</td><td>GET</td><td>/employees</td><td>—</td><td>CollectionModel of EntityModel of Employee</td></tr>
+<tr><td>api-evolution/original-server</td><td>POST</td><td>/employees</td><td>Body: Employee</td><td>EntityModel of Employee (created)</td></tr>
+<tr><td>api-evolution/original-server</td><td>GET</td><td>/employees/{id}</td><td>Path: id (long)</td><td>EntityModel of Employee or 404</td></tr>
+<tr><td>api-evolution/new-server</td><td>GET</td><td>/</td><td>—</td><td>Root links</td></tr>
+<tr><td>api-evolution/new-server</td><td>GET</td><td>/employees</td><td>—</td><td>CollectionModel of EntityModel of Employee</td></tr>
+<tr><td>api-evolution/new-server</td><td>POST</td><td>/employees</td><td>Body: Employee</td><td>EntityModel of Employee (created)</td></tr>
+<tr><td>api-evolution/new-server</td><td>GET</td><td>/employees/{id}</td><td>Path: id (long)</td><td>EntityModel of Employee or 404</td></tr>
+<tr><td>spring-data-rest</td><td>GET</td><td>/api/orders</td><td>—</td><td>Spring Data REST collection (HAL)</td></tr>
+<tr><td>spring-data-rest</td><td>GET</td><td>/api/orders/{id}</td><td>Path: id (long)</td><td>Spring Data REST entity (HAL)</td></tr>
+<tr><td>spring-data-rest</td><td>POST</td><td>/api/orders/{id}/pay</td><td>Path: id (long)</td><td>Updated Order or 400</td></tr>
+<tr><td>spring-data-rest</td><td>POST</td><td>/api/orders/{id}/cancel</td><td>Path: id (long)</td><td>Updated Order or 400</td></tr>
+<tr><td>spring-data-rest</td><td>POST</td><td>/api/orders/{id}/fulfill</td><td>Path: id (long)</td><td>Updated Order or 400</td></tr>
+</tbody></table></div>
+<h2 id="management-observability-endpoints">Management & Observability Endpoints</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Service</th><th>Endpoint</th><th>Custom Metrics</th>
+</tr></thead><tbody>
+<tr><td>All modules</td><td>None configured</td><td>None — no Spring Boot Actuator or custom metrics detected</td></tr>
+</tbody></table></div>
+<p>No Actuator dependency is included. No Micrometer, Prometheus, or tracing endpoints are exposed by any module.</p>
+<h2 id="dtos-contracts">DTOs & Contracts</h2>
+<p><strong>Domain entities used directly as API responses</strong> (no separate DTO layer):</p>
+<ul>
+<li><code>Employee</code> — used as both persistence entity and API response body. Fields vary slightly by module (basics/affordances/simplified: <code>id</code>, <code>firstName</code>, <code>lastName</code>, <code>role</code>; hypermedia: <code>id</code>, <code>name</code>, <code>role</code>). Annotated with <code>@JsonIgnoreProperties(ignoreUnknown = true)</code> enabling forward-compatible deserialization. Mutable (Lombok <code>@Data</code>).</li>
+<li><code>Manager</code> — hypermedia module entity / API response. Fields: <code>id</code>, <code>name</code>. <code>employees</code> collection is <code>@JsonIgnore</code> to prevent circular serialization. Mutable (Lombok <code>@Data</code>).</li>
+<li><code>EmployeeWithManager</code> — composite view model (hypermedia module) that wraps an <code>Employee</code> and exposes manager details. Acts as a gateway-level aggregation DTO — combines data from both <code>Employee</code> and <code>Manager</code> without a separate service call.</li>
+<li><code>Order</code> — spring-data-rest module entity / API response. Fields: <code>id</code>, <code>orderStatus</code> (enum), <code>description</code>. No immutability annotations; standard getters/setters.</li>
+</ul>
+<p><strong>No OpenAPI/Swagger, protobuf, or GraphQL specifications are present.</strong> Serialization is handled by Jackson (Jackson Databind, included transitively via <code>spring-boot-starter-hateoas</code>). HAL media type (<code>application/hal+json</code>) is the default; the affordances module additionally enables <code>application/paffordance+json</code> (HAL-FORMS) via <code>@EnableHypermediaSupport(type = HypermediaType.HAL_FORMS)</code>.</p>
+<h2 id="communication-patterns">Communication Patterns</h2>
+<p><strong>Synchronous (HTTP/REST only):</strong> All inter-module communication is synchronous HTTP using Spring's <code>RestTemplate</code> configured with <code>HypermediaRestTemplateConfigurer</code> to support HAL link traversal. The <code>api-evolution</code> client modules call their respective server modules using HAL link navigation — clients follow <code>_links.self</code>, <code>_links.employees</code>, etc., rather than hardcoded paths.</p>
+<p><strong>Asynchronous:</strong> No message queues, event buses, Kafka, RabbitMQ, or pub/sub patterns are used.</p>
+<p><strong>Resilience patterns:</strong> No circuit breakers (Resilience4j, Hystrix), retry policies, or timeout configuration are present. No fallback behavior is implemented.</p>
+<p><strong>Service discovery:</strong> No Eureka, Consul, or Kubernetes-based service discovery. The api-evolution client modules connect to hardcoded URLs (<code>http://localhost:9000</code>).</p>
+<p><strong>API gateway:</strong> No API gateway. Each module is independently deployed.</p>
+<p><strong>Security posture:</strong> No authentication, authorization, or TLS is configured in any module. All endpoints are publicly accessible with no security checks. The <code>security</code> sub-module directory exists in the repository but contains no source code.</p>
+<p><strong>Startup dependency chain:</strong> The api-evolution client modules depend on their paired server being reachable at startup. No health-probe or wait mechanism is in place; clients will fail on first request if the server is not running.</p>
+<h2 id="service-technology-matrix">Service Technology Matrix</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Service</th><th>Web Framework</th><th>Data Access</th><th>Discovery</th><th>Gateway</th><th>Actuator</th><th>Cache</th><th>Metrics</th>
+</tr></thead><tbody>
+<tr><td>basics</td><td>Spring MVC</td><td>Spring Data JPA / H2</td><td>None</td><td>None</td><td>None</td><td>None</td><td>None</td></tr>
+<tr><td>hypermedia</td><td>Spring MVC</td><td>Spring Data JPA / H2</td><td>None</td><td>None</td><td>None</td><td>None</td><td>None</td></tr>
+<tr><td>affordances</td><td>Spring MVC</td><td>Spring Data JPA / H2</td><td>None</td><td>None</td><td>None</td><td>None</td><td>None</td></tr>
+<tr><td>simplified</td><td>Spring MVC</td><td>Spring Data JPA / H2</td><td>None</td><td>None</td><td>None</td><td>None</td><td>None</td></tr>
+<tr><td>api-evolution/original-server</td><td>Spring MVC</td><td>Spring Data JPA / H2</td><td>None</td><td>None</td><td>None</td><td>None</td><td>None</td></tr>
+<tr><td>api-evolution/new-server</td><td>Spring MVC</td><td>Spring Data JPA / H2</td><td>None</td><td>None</td><td>None</td><td>None</td><td>None</td></tr>
+<tr><td>api-evolution/original-client</td><td>Spring MVC + RestTemplate</td><td>None</td><td>None</td><td>None</td><td>None</td><td>None</td><td>None</td></tr>
+<tr><td>api-evolution/new-client</td><td>Spring MVC + RestTemplate</td><td>None</td><td>None</td><td>None</td><td>None</td><td>None</td><td>None</td></tr>
+<tr><td>spring-data-rest</td><td>Spring Data REST + Spring MVC</td><td>Spring Data JPA / H2</td><td>None</td><td>None</td><td>None</td><td>None</td><td>None</td></tr>
+</tbody></table></div>
+<h2 id="service-communication-sequence">Service Communication Sequence</h2>
+<div class="mermaid">
+sequenceDiagram
+    participant Client as "HTTP Client"
+    participant Ctrl as "EmployeeController"
+    participant Assembler as "ModelAssembler"
+    participant Repo as "EmployeeRepository"
+    participant DB as "H2 Database"
+
+    Client->>Ctrl: GET /employees
+    Ctrl->>Repo: findAll()
+    Repo->>DB: SELECT * FROM employee
+    DB-->>Repo: List of Employee rows
+    Repo-->>Ctrl: Iterable of Employee
+    Ctrl->>Assembler: toCollectionModel(employees)
+    Assembler-->>Ctrl: CollectionModel with HAL links
+    Ctrl-->>Client: 200 OK - HAL JSON with _links
+
+    Client->>Ctrl: GET /employees/1
+    Ctrl->>Repo: findById(1)
+    Repo->>DB: SELECT * FROM employee WHERE id=1
+    alt Employee found
+        DB-->>Repo: Employee row
+        Repo-->>Ctrl: Optional present
+        Ctrl->>Assembler: toModel(employee)
+        Assembler-->>Ctrl: EntityModel with self link
+        Ctrl-->>Client: 200 OK - HAL JSON
+    else Not found
+        DB-->>Repo: Empty
+        Repo-->>Ctrl: Optional empty
+        Ctrl-->>Client: 404 Not Found
+    end
+
+    Client->>Ctrl: POST /orders/1/pay (spring-data-rest module)
+    Ctrl->>Repo: findById(1)
+    Repo->>DB: SELECT * FROM ORDERS WHERE id=1
+    DB-->>Repo: Order row
+    alt Valid transition to PAID_FOR
+        Repo-->>Ctrl: Order (BEING_CREATED)
+        Ctrl->>Repo: save(order with PAID_FOR)
+        Repo->>DB: UPDATE ORDERS SET orderStatus=PAID_FOR
+        DB-->>Repo: Updated Order
+        Repo-->>Ctrl: Saved Order
+        Ctrl-->>Client: 200 OK - Updated Order JSON
+    else Invalid transition
+        Ctrl-->>Client: 400 Bad Request - transition error message
+    end
+</div></div>
+</div>
+<div id="tab-config" class="tab-panel">
+  <div class="fact-content"><h1 id="configuration-externalized-settings-inventory">Configuration & Externalized Settings Inventory</h1>
+<p>This project has a minimal configuration footprint — only three modules declare explicit <code>application.yml</code> files, with all other modules relying entirely on Spring Boot auto-configuration defaults. There are no runtime profiles, external config servers, or secret stores.</p>
+<h2 id="configuration-sources">Configuration Sources</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Source</th><th>Type</th><th>Path / Location</th><th>Notes</th>
+</tr></thead><tbody>
+<tr><td>application.yml</td><td>YAML config</td><td>api-evolution/original-server/src/main/resources/application.yml</td><td>Sets server.port=9000</td></tr>
+<tr><td>application.yml</td><td>YAML config</td><td>api-evolution/new-server/src/main/resources/application.yml</td><td>Sets server.port=9000</td></tr>
+<tr><td>application.yml</td><td>YAML config</td><td>spring-hateoas-and-spring-data-rest/src/main/resources/application.yml</td><td>Sets spring.data.rest.base-path=/api and server.port=9000</td></tr>
+<tr><td>Spring Boot auto-configuration</td><td>Built-in defaults</td><td>N/A</td><td>All other modules (basics, hypermedia, affordances, simplified) rely fully on auto-config defaults</td></tr>
+<tr><td>pom.xml</td><td>Maven build config</td><td>pom.xml (root)</td><td>Parent POM; declares java.version, evo.version, module list, spring52-next build profile</td></tr>
+<tr><td>maven-wrapper.properties</td><td>Build tool</td><td>.mvn/wrapper/maven-wrapper.properties</td><td>Pins Maven 3.5.0 via Maven Wrapper</td></tr>
+</tbody></table></div>
+<p>No external config server (Spring Cloud Config, Azure App Configuration, AWS AppConfig, Consul KV) is used. No Kubernetes ConfigMaps, Docker Compose environment sections, or secret stores (Vault, KeyVault, Secrets Manager) are referenced.</p>
+<h2 id="build-profiles">Build Profiles</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Profile</th><th>Activation</th><th>Purpose</th><th>Key Dependencies/Plugins</th>
+</tr></thead><tbody>
+<tr><td>(default)</td><td>Automatic — active always</td><td>Standard build with all declared dependencies</td><td>spring-boot-starter-hateoas, spring-boot-starter-data-jpa, H2, Lombok, Evo Inflector, spring-boot-devtools, spring-boot-starter-test</td></tr>
+<tr><td>spring52-next</td><td>Manual — <code>-Pspring52-next</code></td><td>Overrides Spring Framework version to 5.2.6.BUILD-SNAPSHOT for bleeding-edge compatibility testing</td><td>Adds spring-libs-snapshot repository; overrides spring.version property</td></tr>
+</tbody></table></div>
+<h2 id="runtime-profiles">Runtime Profiles</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Profile</th><th>Activation Method</th><th>Config Files</th><th>Key Overrides</th>
+</tr></thead><tbody>
+<tr><td>(default)</td><td>Active when no explicit profile is set</td><td>Spring Boot auto-config defaults</td><td>All modules run against embedded H2 in-memory database</td></tr>
+<tr><td>(none defined)</td><td>N/A</td><td>N/A</td><td>No <code>application-dev.yml</code>, <code>application-prod.yml</code>, or <code>@Profile</code>-annotated beans are present in any module</td></tr>
+</tbody></table></div>
+<p>No runtime profiles are defined. All configuration is either in the default <code>application.yml</code> or in Spring Boot auto-configuration. There is no <code>spring.profiles.active</code> setting in any configuration file.</p>
+<h2 id="properties-inventory">Properties Inventory</h2>
+<h3 id="api-evolution-original-server">api-evolution/original-server</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Property Key</th><th>Value</th><th>Profile</th><th>Source</th>
+</tr></thead><tbody>
+<tr><td>server.port</td><td>9000</td><td>default</td><td>application.yml</td></tr>
+</tbody></table></div>
+<h3 id="api-evolution-new-server">api-evolution/new-server</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Property Key</th><th>Value</th><th>Profile</th><th>Source</th>
+</tr></thead><tbody>
+<tr><td>server.port</td><td>9000</td><td>default</td><td>application.yml</td></tr>
+</tbody></table></div>
+<h3 id="spring-hateoas-and-spring-data-rest">spring-hateoas-and-spring-data-rest</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Property Key</th><th>Value</th><th>Profile</th><th>Source</th>
+</tr></thead><tbody>
+<tr><td>spring.data.rest.base-path</td><td>/api</td><td>default</td><td>application.yml</td></tr>
+<tr><td>server.port</td><td>9000</td><td>default</td><td>application.yml</td></tr>
+</tbody></table></div>
+<h3 id="all-other-modules-basics-hypermedia-affordances-simplified">All other modules (basics, hypermedia, affordances, simplified)</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Property Key</th><th>Value</th><th>Profile</th><th>Source</th>
+</tr></thead><tbody>
+<tr><td>server.port</td><td>8080</td><td>default</td><td>Spring Boot auto-config default</td></tr>
+<tr><td>spring.datasource.url</td><td>jdbc:h2:mem:testdb</td><td>default</td><td>Spring Boot H2 auto-config default</td></tr>
+<tr><td>spring.jpa.hibernate.ddl-auto</td><td>create-drop</td><td>default</td><td>Spring Boot H2 auto-config default</td></tr>
+<tr><td>spring.h2.console.enabled</td><td>false</td><td>default</td><td>Spring Boot auto-config default</td></tr>
+</tbody></table></div>
+<p>No properties are sourced from environment variables. No placeholder references (<code>${ENV_VAR}</code>) are present in any configuration file.</p>
+<h2 id="startup-parameters-resource-requirements">Startup Parameters & Resource Requirements</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Service</th><th>JVM/Runtime Options</th><th>Memory</th><th>Instance Count</th>
+</tr></thead><tbody>
+<tr><td>All modules</td><td>None specified (JVM defaults)</td><td>Not configured</td><td>1 (standalone Spring Boot jar)</td></tr>
+</tbody></table></div>
+<p>No <code>-Xms</code>/<code>-Xmx</code> heap settings, no Docker <code>mem_limit</code>, no Kubernetes resource requests/limits, and no scaling configuration are defined. All modules run as standalone Spring Boot JARs with default JVM settings.</p>
+<h2 id="startup-dependency-chain">Startup Dependency Chain</h2>
+<p>There are no automated startup dependency mechanisms (Kubernetes readiness probes, <code>dockerize</code>, Docker Compose <code>depends_on</code> with health checks, or Spring Cloud Config retry) configured for any module.</p>
+<p>The api-evolution client modules (<code>original-client</code>, <code>new-client</code>) make HTTP calls to their respective servers at <code>http://localhost:9000</code> on the first user request. If the server is not already running, the first request will fail with a connection error. There is no built-in wait or retry mechanism.</p>
+<p>Recommended startup order for the api-evolution pair:</p>
+<ol>
+<li>Start <code>api-evolution/original-server</code> (port 9000)</li>
+<li>Start <code>api-evolution/original-client</code> (port 8080)</li>
+</ol>
+<p>Or for the evolved pair:</p>
+<ol>
+<li>Start <code>api-evolution/new-server</code> (port 9000)</li>
+<li>Start <code>api-evolution/new-client</code> (port 8080)</li>
+</ol>
+<p>All other modules (basics, hypermedia, affordances, simplified, spring-data-rest) are fully self-contained and have no startup dependencies.</p>
+<h2 id="secrets-sensitive-configuration">Secrets & Sensitive Configuration</h2>
+<p>No secrets or sensitive configuration values are present in any configuration file. There are no database passwords (H2 in-memory requires no credentials), no API keys, no OAuth2 client secrets, no connection strings with credentials, and no external secret store references.</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Secret Reference</th><th>Type</th><th>Storage</th>
+</tr></thead><tbody>
+<tr><td>(none detected)</td><td>—</td><td>—</td></tr>
+</tbody></table></div>
+<h3 id="secrets-provisioning-workflow">Secrets Provisioning Workflow</h3>
+<p>No secrets provisioning workflow exists. The project uses H2 in-memory databases that require no authentication credentials. No external services requiring API keys, tokens, or connection strings are integrated. No secret manager, vault, or encrypted property mechanism is needed or configured.</p>
+<h2 id="feature-flags">Feature Flags</h2>
+<p>No feature flag framework (LaunchDarkly, Unleash, Spring Feature Flags, .NET FeatureManagement) is used. No <code>@ConditionalOnProperty</code> or <code>@ConditionalOnExpression</code> beans that act as feature toggles are present. The <code>spring52-next</code> Maven build profile is the only mechanism for toggling behavior (at build time, not runtime).</p>
+<div class="table-wrap"><table><thead><tr>
+<th>Flag Name</th><th>Default</th><th>Controlled By</th>
+</tr></thead><tbody>
+<tr><td>(none detected)</td><td>—</td><td>—</td></tr>
+</tbody></table></div>
+<h2 id="framework-runtime-versions">Framework & Runtime Versions</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Component</th><th>Version</th><th>Source</th>
+</tr></thead><tbody>
+<tr><td>Spring Boot</td><td>2.3.4.RELEASE</td><td>pom.xml parent BOM</td></tr>
+<tr><td>Spring Framework</td><td>5.2.x (Boot-managed)</td><td>spring-boot-starter-parent BOM</td></tr>
+<tr><td>Spring HATEOAS</td><td>Boot-managed</td><td>spring-boot-starter-hateoas</td></tr>
+<tr><td>Spring Data JPA</td><td>Boot-managed</td><td>spring-boot-starter-data-jpa</td></tr>
+<tr><td>Spring Data REST</td><td>Boot-managed</td><td>spring-boot-starter-data-rest (spring-data-rest module only)</td></tr>
+<tr><td>Hibernate ORM</td><td>Boot-managed</td><td>spring-boot-starter-data-jpa</td></tr>
+<tr><td>H2 Database</td><td>Boot-managed</td><td>com.h2database:h2</td></tr>
+<tr><td>Lombok</td><td>Boot-managed</td><td>org.projectlombok:lombok</td></tr>
+<tr><td>Evo Inflector</td><td>1.2.2</td><td>pom.xml (explicit version)</td></tr>
+<tr><td>Jackson Databind</td><td>Boot-managed</td><td>transitive via spring-boot-starter-hateoas</td></tr>
+<tr><td>Java (source/target)</td><td>1.8</td><td>pom.xml java.version property</td></tr>
+<tr><td>Maven</td><td>3.5.0</td><td>.mvn/wrapper/maven-wrapper.properties</td></tr>
+<tr><td>Maven Wrapper</td><td>3.5.0</td><td>.mvn/wrapper/maven-wrapper.properties</td></tr>
+</tbody></table></div>
+<p>No Docker base images, Kubernetes manifests, or container configurations are present in this repository. All applications are run as standard executable Spring Boot JARs.</p></div>
+</div>
+<div id="tab-workflows" class="tab-panel">
+  <div class="fact-content"><h1 id="core-business-workflows">Core Business Workflows</h1>
+<p>This project is a collection of educational example applications demonstrating hypermedia-driven REST API patterns for employee and order management, using Spring HATEOAS to enable self-describing APIs that evolve without breaking clients.</p>
+<h2 id="domain-entities">Domain Entities</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Entity</th><th>Service / Bounded Context</th><th>Description</th><th>Key Relationships</th>
+</tr></thead><tbody>
+<tr><td>Employee</td><td>Employee Management (basics, hypermedia, affordances, simplified, api-evolution)</td><td>Represents a company employee with a name and role</td><td>Many-to-one with Manager (hypermedia module); standalone in other modules</td></tr>
+<tr><td>Manager</td><td>Employee Management (hypermedia)</td><td>Represents a team manager who supervises one or more employees</td><td>One-to-many with Employee; navigable via employee link</td></tr>
+<tr><td>EmployeeWithManager</td><td>Employee Management (hypermedia)</td><td>Composite read-model combining employee data with their manager details</td><td>Derived from Employee + Manager; used only in read operations</td></tr>
+<tr><td>Order</td><td>Order Management (spring-data-rest)</td><td>Represents a customer order that moves through a lifecycle state machine</td><td>Standalone; no cross-entity relationships</td></tr>
+</tbody></table></div>
+<h2 id="service-to-domain-mapping">Service-to-Domain Mapping</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Service</th><th>Domain Context</th><th>Owned Entities</th><th>External Dependencies</th>
+</tr></thead><tbody>
+<tr><td>basics</td><td>Employee Management — Basic</td><td>Employee</td><td>None</td></tr>
+<tr><td>hypermedia</td><td>Employee Management — Full</td><td>Employee, Manager, EmployeeWithManager</td><td>None</td></tr>
+<tr><td>affordances</td><td>Employee Management — HAL-FORMS</td><td>Employee</td><td>None</td></tr>
+<tr><td>simplified</td><td>Employee Management — Simplified</td><td>Employee</td><td>None</td></tr>
+<tr><td>api-evolution/original-server</td><td>Employee Management — Original API</td><td>Employee (v1: firstName, lastName, role)</td><td>None</td></tr>
+<tr><td>api-evolution/new-server</td><td>Employee Management — Evolved API</td><td>Employee (v2: firstName, lastName, role + fullName)</td><td>None</td></tr>
+<tr><td>api-evolution/original-client</td><td>Employee Management — Client</td><td>(none owned — reads from original-server)</td><td>original-server at localhost:9000</td></tr>
+<tr><td>api-evolution/new-client</td><td>Employee Management — Client</td><td>(none owned — reads from new-server)</td><td>new-server at localhost:9000</td></tr>
+<tr><td>spring-data-rest</td><td>Order Management</td><td>Order</td><td>None</td></tr>
+</tbody></table></div>
+<h2 id="primary-workflows">Primary Workflows</h2>
+<h3 id="workflow-1-browse-and-retrieve-employees-read-only">Workflow 1: Browse and Retrieve Employees (Read-Only)</h3>
+<p>The simplest workflow, demonstrated in the <strong>basics</strong> and <strong>hypermedia</strong> modules. A client sends a GET request to the employees collection endpoint. The controller calls the repository to load all employees, passes the results to the model assembler, which enriches each entity with hypermedia links (self link, collection link). The enriched collection is returned as an <code>application/hal+json</code> document. A client follows the self link on any individual employee to retrieve that specific employee's full details, including links to related resources.</p>
+<p>Steps:</p>
+<ol>
+<li>Client discovers API via root link (hypermedia module) or directly requests <code>/employees</code></li>
+<li>Controller retrieves all employees from JPA repository</li>
+<li>Model assembler adds <code>_links.self</code> and <code>_links.employees</code> to each item</li>
+<li>Client follows links to navigate to individual employee or manager details</li>
+</ol>
+<h3 id="workflow-2-create-and-update-employees-full-crud">Workflow 2: Create and Update Employees (Full CRUD)</h3>
+<p>Demonstrated in the <strong>simplified</strong> and <strong>affordances</strong> modules. A POST to <code>/employees</code> creates a new employee; the response includes a <code>Location</code> header pointing to the new resource's self link. A PUT to <code>/employees/{id}</code> replaces an existing employee's data; the response returns a <code>Location</code> header with the updated resource link.</p>
+<p>Steps:</p>
+<ol>
+<li>Client POSTs employee payload to <code>/employees</code></li>
+<li>Controller saves entity via JPA repository</li>
+<li>Response body contains EntityModel with self link; <code>Location</code> header set to new resource URI</li>
+<li>Client may follow the Location link to retrieve the created/updated resource</li>
+</ol>
+<h3 id="workflow-3-navigate-manager-employee-relationships-hypermedia">Workflow 3: Navigate Manager-Employee Relationships (Hypermedia)</h3>
+<p>Unique to the <strong>hypermedia</strong> module. The API exposes navigable links between employees and their managers in both directions:</p>
+<ul>
+<li>From a manager: GET <code>/managers/{id}/employees</code> returns all employees under that manager</li>
+<li>From an employee: GET <code>/employees/{id}/manager</code> returns the employee's manager</li>
+<li>The root endpoint (<code>/</code>) returns discovery links pointing to employees, managers, and detailed views</li>
+</ul>
+<p>Steps:</p>
+<ol>
+<li>Client fetches <code>/</code> to discover available link relations</li>
+<li>Client follows <code>_links.managers</code> to browse managers</li>
+<li>Client follows <code>_links.employees</code> on a manager resource to see the manager's team</li>
+<li>Client follows <code>_links.manager</code> on an employee resource to see who manages them</li>
+</ol>
+<h3 id="workflow-4-order-state-machine-transitions">Workflow 4: Order State Machine Transitions</h3>
+<p>Unique to the <strong>spring-data-rest</strong> module. An Order starts in <code>BEING_CREATED</code> status. Business rules enforce which status transitions are valid. State transitions are triggered via dedicated POST endpoints and are validated before any change is persisted.</p>
+<p>Valid transitions:</p>
+<ul>
+<li><code>BEING_CREATED</code> → <code>PAID_FOR</code> (pay action)</li>
+<li><code>BEING_CREATED</code> → <code>CANCELLED</code> (cancel action)</li>
+<li><code>PAID_FOR</code> → <code>FULFILLED</code> (fulfill action)</li>
+<li><code>FULFILLED</code> → (terminal — no further transitions)</li>
+<li><code>CANCELLED</code> → (terminal — no further transitions)</li>
+</ul>
+<p>Steps:</p>
+<ol>
+<li>Order is created via Spring Data REST with initial status <code>BEING_CREATED</code></li>
+<li>Client POSTs to <code>/api/orders/{id}/pay</code>, <code>/api/orders/{id}/cancel</code>, or <code>/api/orders/{id}/fulfill</code></li>
+<li><code>CustomOrderController</code> retrieves the Order and calls <code>OrderStatus.valid(current, requested)</code> to validate the transition</li>
+<li>If valid: status is updated and the updated Order is saved and returned (200 OK)</li>
+<li>If invalid: 400 Bad Request is returned with a descriptive error message</li>
+</ol>
+<h3 id="workflow-5-api-evolution-backward-compatible-client-server-interaction">Workflow 5: API Evolution — Backward-Compatible Client-Server Interaction</h3>
+<p>Demonstrated across <strong>api-evolution</strong> module pairs. The new server adds a <code>fullName</code> derived field to the Employee resource. The original client uses <code>@JsonIgnoreProperties(ignoreUnknown = true)</code> and HAL link traversal, so it continues to work correctly against the new server without any code change — it simply ignores the unknown <code>fullName</code> field. This demonstrates that HATEOAS-based clients are insulated from non-breaking server-side API additions.</p>
+<h2 id="cross-service-data-flows">Cross-Service Data Flows</h2>
+<p>The only cross-service data flow in this project is in the <strong>api-evolution</strong> module pair. The client application calls the server over HTTP using a HAL-aware <code>RestTemplate</code> (configured by <code>HypermediaRestTemplateConfigurer</code>). The client does not use hardcoded URL paths for data navigation — it follows hypermedia links from the server's responses, making the client resilient to path changes.</p>
+<p>There is no API gateway aggregation across multiple backend services. The hypermedia module's <code>EmployeeWithManager</code> view model is the closest analogue — it combines Employee and Manager data within a single JVM process using JPA relationships, not inter-service HTTP calls. No circuit breaker or fallback behavior applies.</p>
+<h2 id="business-workflow-sequence">Business Workflow Sequence</h2>
+<div class="mermaid">
+sequenceDiagram
+    participant Client as "HTTP Client"
+    participant Ctrl as "CustomOrderController"
+    participant OrderRepo as "OrderRepository"
+    participant StateMachine as "OrderStatus validator"
+    participant DB as "H2 Database"
+
+    Note over Client,DB: Order State Machine Workflow (spring-data-rest module)
+
+    Client->>OrderRepo: POST /api/orders (Spring Data REST)
+    OrderRepo->>DB: INSERT INTO ORDERS (status=BEING_CREATED)
+    DB-->>OrderRepo: Saved Order id=1
+    OrderRepo-->>Client: 201 Created - Order (BEING_CREATED)
+
+    Client->>Ctrl: POST /api/orders/1/pay
+    Ctrl->>OrderRepo: findById(1)
+    OrderRepo->>DB: SELECT FROM ORDERS WHERE id=1
+    DB-->>OrderRepo: Order (BEING_CREATED)
+    OrderRepo-->>Ctrl: Order entity
+
+    Ctrl->>StateMachine: valid(BEING_CREATED, PAID_FOR)?
+    alt Transition is valid
+        StateMachine-->>Ctrl: true
+        Ctrl->>OrderRepo: save(order with PAID_FOR)
+        OrderRepo->>DB: UPDATE ORDERS SET status=PAID_FOR WHERE id=1
+        DB-->>OrderRepo: Updated Order
+        OrderRepo-->>Ctrl: Saved Order
+        Ctrl-->>Client: 200 OK - Order (PAID_FOR)
+    else Transition is invalid
+        StateMachine-->>Ctrl: false
+        Ctrl-->>Client: 400 Bad Request - invalid transition message
+    end
+
+    Client->>Ctrl: POST /api/orders/1/fulfill
+    Ctrl->>OrderRepo: findById(1)
+    OrderRepo->>DB: SELECT FROM ORDERS WHERE id=1
+    DB-->>OrderRepo: Order (PAID_FOR)
+    OrderRepo-->>Ctrl: Order entity
+    Ctrl->>StateMachine: valid(PAID_FOR, FULFILLED)?
+    StateMachine-->>Ctrl: true
+    Ctrl->>OrderRepo: save(order with FULFILLED)
+    OrderRepo->>DB: UPDATE ORDERS SET status=FULFILLED WHERE id=1
+    DB-->>OrderRepo: Updated Order
+    Ctrl-->>Client: 200 OK - Order (FULFILLED)
+
+    Note over Client,Ctrl: Order is now in terminal state - no further transitions allowed
+</div>
+<h2 id="business-rules-decision-logic">Business Rules & Decision Logic</h2>
+<h3 id="validation-rules">Validation Rules</h3>
+<ul>
+<li><strong>Order state transition validation</strong> (<code>OrderStatus.valid</code>): Encodes all valid state transitions in a single static method. Invalid transitions return <code>false</code>, causing the controller to return HTTP 400 with a descriptive message. No Spring validation annotations (<code>@Valid</code>, <code>@NotNull</code>) are used on entity fields.</li>
+<li><strong>Employee deserialization</strong>: <code>@JsonIgnoreProperties(ignoreUnknown = true)</code> on Employee entities allows clients to silently ignore unknown JSON fields added by newer server versions, enabling backward-compatible API evolution without breaking existing clients.</li>
+</ul>
+<h3 id="state-transitions-order-lifecycle">State Transitions (Order lifecycle)</h3>
+<pre><code>
+BEING_CREATED --[pay]--&gt; PAID_FOR
+BEING_CREATED --[cancel]--&gt; CANCELLED
+PAID_FOR --[fulfill]--&gt; FULFILLED
+FULFILLED --&gt; (terminal)
+CANCELLED --&gt; (terminal)
+</code></pre>
+<h3 id="business-constraints">Business Constraints</h3>
+<ul>
+<li><strong>No duplicate prevention</strong>: No uniqueness constraints are declared on Employee or Order entities beyond the auto-generated primary key.</li>
+<li><strong>No capacity or temporal constraints</strong>: No booking windows, quantity limits, or time-bounded rules are implemented.</li>
+<li><strong>Derived field for API evolution</strong> (<code>Employee.getFullName()</code>): Returns <code>firstName + " " + lastName</code> as an additional read-only field. Because of <code>@JsonIgnoreProperties</code>, old clients ignore this field when POSTing data back, preventing data corruption.</li>
+</ul>
+<h3 id="transactions">Transactions</h3>
+<p>No explicit <code>@Transactional</code> annotations appear in controller or service code. Spring Data JPA repository methods run within Spring's default transaction management. Each repository <code>save()</code> call is transactional by default.</p>
+<h3 id="error-handling">Error Handling</h3>
+<ul>
+<li><strong>Order not found</strong>: <code>OrderNotFoundException</code> is thrown when <code>findById</code> returns empty; controllers return an appropriate error response.</li>
+<li><strong>Invalid URI construction</strong>: <code>URISyntaxException</code> is caught in the simplified and affordances controllers when building the <code>Location</code> header, returning 400 Bad Request with an error message.</li>
+<li><strong>Invalid state transition</strong>: Returns HTTP 400 with a plain-text message describing the invalid transition.</li>
+</ul>
+<h3 id="audit-logging">Audit / Logging</h3>
+<p>No audit trail, business event logging, or change-tracking mechanisms are implemented.</p>
+<h3 id="authorization">Authorization</h3>
+<p>No business-level authorization rules, role-based access control, or <code>@PreAuthorize</code> annotations are present. All endpoints are publicly accessible.</p></div>
+</div>
+<div id="tab-deps" class="tab-panel">
+  <div class="fact-content"><h1 id="dependency-map">Dependency Map</h1>
+<p>The Spring HATEOAS Examples project is a multi-module Maven application with 8 modules sharing a common parent POM. The project declares approximately 8 runtime/compile dependencies at the root level, plus module-specific additions.</p>
+<h2 id="dependencies">Dependencies</h2>
+<div class="mermaid">
+flowchart LR
+    App["spring-hateoas-examples\nv1.0.0.BUILD-SNAPSHOT"]
+
+    subgraph Web["Web Frameworks"]
+        StarterHateoas["spring-boot-starter-hateoas\n(Boot 2.3.4)"]
+        StarterDataRest["spring-boot-starter-data-rest\n(Boot 2.3.4)"]
+    end
+
+    subgraph DB["Database / ORM"]
+        StarterJPA["spring-boot-starter-data-jpa\n(Boot 2.3.4)"]
+        H2["H2 Database\n(Boot-managed)"]
+    end
+
+    subgraph Util["Utilities"]
+        Lombok["Lombok\n(Boot-managed)"]
+        EvoInflector["Evo Inflector v1.2.2"]
+        DevTools["spring-boot-devtools\n(Boot 2.3.4)"]
+        RestDocs["spring-restdocs-webtestclient\n(test-scoped)"]
+    end
+
+    subgraph ParentBOM["Parent BOM"]
+        BootParent["spring-boot-starter-parent\nv2.3.4.RELEASE"]
+    end
+
+    App -->|"web + hateoas"| Web
+    App -->|"persistence"| DB
+    App -->|"utilities"| Util
+    BootParent -.->|"manages versions"| Web
+    BootParent -.->|"manages versions"| DB
+    BootParent -.->|"manages versions"| Util
+    StarterHateoas -.->|"includes"| StarterDataRest
+</div>
+<h3 id="dependency-summary">Dependency Summary</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Category</th><th>Count</th><th>Key Libraries</th><th>Notes</th>
+</tr></thead><tbody>
+<tr><td>Web Frameworks</td><td>2</td><td>spring-boot-starter-hateoas, spring-boot-starter-data-rest</td><td>HATEOAS used project-wide; data-rest only in spring-data-rest module</td></tr>
+<tr><td>Database / ORM</td><td>2</td><td>spring-boot-starter-data-jpa, H2</td><td>In-memory H2; no production database configured</td></tr>
+<tr><td>Utilities</td><td>3</td><td>Lombok, Evo Inflector 1.2.2, spring-boot-devtools</td><td>Evo Inflector has an explicit version; others are BOM-managed</td></tr>
+</tbody></table></div>
+<h3 id="version-compatibility-risks">Version & Compatibility Risks</h3>
+<p>The project is built on Spring Boot <strong>2.3.4.RELEASE</strong>, which reached end-of-life in November 2021. Spring Boot 2.x itself reached EOL in November 2023. The underlying Java version target is <strong>Java 8</strong>, which is in long-term support but behind current LTS releases (Java 17, 21). The H2 database is configured only as an in-memory store, which is appropriate for examples but is not production-ready. Evo Inflector <strong>1.2.2</strong> is pinned explicitly; upgrading Spring Boot would require verifying compatibility with the newer version of this library. The <code>spring-boot-devtools</code> dependency is included in compile scope, which is normally scoped to runtime/dev only.</p>
+<h3 id="notable-observations">Notable Observations</h3>
+<ul>
+<li><strong>Spring Boot 2.3.4.RELEASE is end-of-life</strong>: Both Spring Boot 2.x and Spring Framework 5.x have reached EOL. The project should be migrated to Spring Boot 3.x (Spring Framework 6.x) targeting Java 17+.</li>
+<li><strong>No production database</strong>: All modules rely exclusively on H2 in-memory storage. A real deployment would require a persistent datastore (e.g., PostgreSQL, MySQL).</li>
+<li><strong>javax.persistence vs jakarta.persistence</strong>: The project uses <code>javax.persistence</code> annotations (Java EE), which are renamed to <code>jakarta.persistence</code> in Spring Boot 3.x / Jakarta EE 9+. This is a breaking change requiring source code updates.</li>
+<li><strong>spring-boot-devtools in default scope</strong>: The <code>spring-boot-devtools</code> dependency is declared without a <code><scope>runtime</scope></code> or <code><optional>true</optional></code> qualifier in the parent POM, which may inadvertently package it into production JARs.</li>
+</ul>
+<h2 id="test-dependencies">Test Dependencies</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Framework</th><th>Version</th><th>Notes</th>
+</tr></thead><tbody>
+<tr><td>spring-boot-starter-test</td><td>Boot-managed (2.3.4)</td><td>Includes JUnit 5, Mockito, AssertJ, Spring Test</td></tr>
+<tr><td>spring-restdocs-webtestclient</td><td>Boot-managed</td><td>Used only in spring-hateoas-and-spring-data-rest module for REST documentation tests</td></tr>
+</tbody></table></div>
+<p>Total test-scope dependencies: 2</p>
+<p>The project uses the standard Spring Boot test slice (<code>@SpringBootTest</code>, <code>@WebMvcTest</code>) provided by <code>spring-boot-starter-test</code>, which bundles JUnit 5, Mockito, and AssertJ. No separate contract-testing or integration test framework (e.g., Testcontainers, Pact) is present. <code>spring-restdocs-webtestclient</code> is included in only one module for generating API documentation snippets.</p></div>
+</div>
+<div id="tab-data" class="tab-panel">
+  <div class="fact-content"><h1 id="data-architecture-persistence-layer">Data Architecture & Persistence Layer</h1>
+<p>This project uses Spring Data JPA backed by an embedded H2 in-memory database across all modules, with 3 distinct entity types (Employee, Manager, Order) spread across independent Spring Boot applications.</p>
+<h2 id="database-configuration">Database Configuration</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Service/Module</th><th>DB Type</th><th>Profile</th><th>Driver</th><th>Connection</th><th>Migration Tool</th>
+</tr></thead><tbody>
+<tr><td>basics</td><td>H2 in-memory</td><td>default (all)</td><td>H2 (Boot-managed)</td><td>Embedded, auto-configured</td><td>None — Hibernate ddl-auto creates schema; DatabaseLoader seeds data via CommandLineRunner</td></tr>
+<tr><td>hypermedia</td><td>H2 in-memory</td><td>default (all)</td><td>H2 (Boot-managed)</td><td>Embedded, auto-configured</td><td>None — Hibernate ddl-auto creates schema; DatabaseLoader seeds data via CommandLineRunner</td></tr>
+<tr><td>affordances</td><td>H2 in-memory</td><td>default (all)</td><td>H2 (Boot-managed)</td><td>Embedded, auto-configured</td><td>None — Hibernate ddl-auto creates schema; DatabaseLoader seeds data via CommandLineRunner</td></tr>
+<tr><td>simplified</td><td>H2 in-memory</td><td>default (all)</td><td>H2 (Boot-managed)</td><td>Embedded, auto-configured</td><td>None — Hibernate ddl-auto creates schema; DatabaseLoader seeds data via CommandLineRunner</td></tr>
+<tr><td>api-evolution/original-server</td><td>H2 in-memory</td><td>default (all)</td><td>H2 (Boot-managed)</td><td>Embedded, auto-configured</td><td>None — Hibernate creates schema; InitDatabase seeds data via ApplicationListener</td></tr>
+<tr><td>api-evolution/new-server</td><td>H2 in-memory</td><td>default (all)</td><td>H2 (Boot-managed)</td><td>Embedded, auto-configured</td><td>None — Hibernate creates schema; InitDatabase seeds data via ApplicationListener</td></tr>
+<tr><td>spring-data-rest</td><td>H2 in-memory</td><td>default (all)</td><td>H2 (Boot-managed)</td><td>Embedded, auto-configured</td><td>None — Hibernate creates schema on startup</td></tr>
+</tbody></table></div>
+<p>See <code>configuration-inventory.md</code> for the full property inventory per module.</p>
+<h2 id="data-ownership-per-service">Data Ownership per Service</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Service</th><th>Tables Owned</th><th>ORM Framework</th><th>Caching</th><th>Notes</th>
+</tr></thead><tbody>
+<tr><td>basics</td><td>EMPLOYEE</td><td>Hibernate (via Spring Data JPA)</td><td>None</td><td>Simple Employee CRUD; no manager relationship</td></tr>
+<tr><td>hypermedia</td><td>EMPLOYEE, MANAGER</td><td>Hibernate (via Spring Data JPA)</td><td>None</td><td>Bidirectional OneToMany Manager-Employee; OneToOne Employee-Manager</td></tr>
+<tr><td>affordances</td><td>EMPLOYEE</td><td>Hibernate (via Spring Data JPA)</td><td>None</td><td>Full CRUD; HAL-FORMS affordances</td></tr>
+<tr><td>simplified</td><td>EMPLOYEE</td><td>Hibernate (via Spring Data JPA)</td><td>None</td><td>Full CRUD via SimpleIdentifiableRepresentationModelAssembler</td></tr>
+<tr><td>api-evolution/original-server</td><td>EMPLOYEE</td><td>Hibernate (via Spring Data JPA)</td><td>None</td><td>Original API schema: firstName, lastName, role</td></tr>
+<tr><td>api-evolution/new-server</td><td>EMPLOYEE</td><td>Hibernate (via Spring Data JPA)</td><td>None</td><td>Evolved API schema; backward-compatible fields</td></tr>
+<tr><td>spring-data-rest</td><td>ORDERS</td><td>Hibernate (via Spring Data JPA)</td><td>None</td><td>Order state machine; table name overridden to ORDERS</td></tr>
+</tbody></table></div>
+<h2 id="entity-model">Entity Model</h2>
+<div class="mermaid">
+erDiagram
+    Employee_Hypermedia }o--|| Manager : "reports to"
+    Manager ||--o{ Employee_Hypermedia : "manages"
+
+    Employee_Basic {
+        Long id PK
+        String firstName
+        String lastName
+        String role
+    }
+
+    Employee_Hypermedia {
+        Long id PK
+        String name
+        String role
+        Long managerId FK
+    }
+
+    Manager {
+        Long id PK
+        String name
+    }
+
+    Order {
+        Long id PK
+        String orderStatus
+        String description
+    }
+</div>
+<h2 id="key-repository-methods">Key Repository Methods</h2>
+<div class="table-wrap"><table><thead><tr>
+<th>Service</th><th>Repository</th><th>Notable Methods</th><th>Purpose</th>
+</tr></thead><tbody>
+<tr><td>basics, affordances, simplified</td><td>EmployeeRepository extends CrudRepository</td><td>findAll(), findById(Long), save(Employee), deleteById(Long)</td><td>Standard CRUD inherited from CrudRepository</td></tr>
+<tr><td>hypermedia</td><td>EmployeeRepository extends CrudRepository</td><td>findByManagerId(Long id)</td><td>Retrieves all employees belonging to a specific manager (derived query)</td></tr>
+<tr><td>hypermedia</td><td>ManagerRepository extends CrudRepository</td><td>findByEmployeesId(Long id)</td><td>Navigates the OneToMany/OneToOne JPA relationship to find a Manager from an Employee id</td></tr>
+<tr><td>api-evolution (both servers)</td><td>EmployeeRepository extends CrudRepository</td><td>findAll(), findById(Long), save(Employee)</td><td>Standard CRUD inherited from CrudRepository</td></tr>
+<tr><td>spring-data-rest</td><td>OrderRepository extends CrudRepository</td><td>findAll(), findById(Long), save(Order)</td><td>Standard CRUD; Spring Data REST auto-exposes collection and item resources</td></tr>
+</tbody></table></div>
+<h2 id="caching-strategy">Caching Strategy</h2>
+<p>No caching layer is configured in any module. There are no <code>@Cacheable</code>, <code>@CacheEvict</code>, or <code>@EnableCaching</code> annotations, and no cache provider (EhCache, Redis, Caffeine, etc.) is declared as a dependency. All data reads go directly to the H2 in-memory database. Given that H2 operates in-process and in-memory, query latency is negligible for the example workloads; caching is not needed for this educational project.</p>
+<h2 id="data-ownership-boundaries">Data Ownership Boundaries</h2>
+<p>Each Spring Boot module maintains its own isolated H2 in-memory database instance. There is no shared database server — each application starts its own embedded H2 engine at runtime and the data does not persist between restarts. This database-per-service model (enforced by the embedded runtime) means there is no cross-service data access at the database level. All cross-module data composition (e.g., the <code>EmployeeWithManager</code> view model in the hypermedia module) is done within the same JVM process via JPA relationships rather than inter-service HTTP calls.</p>
+<p>The api-evolution client modules are the only services that access data owned by another service (the server modules), and they do so exclusively through the REST API using HAL link traversal via <code>RestTemplate</code>.</p>
+<h3 id="data-classification-sensitivity">Data Classification & Sensitivity</h3>
+<div class="table-wrap"><table><thead><tr>
+<th>Entity</th><th>Sensitive Fields</th><th>Classification</th><th>Controls in Place</th>
+</tr></thead><tbody>
+<tr><td>Employee (basics/affordances/simplified)</td><td>firstName, lastName</td><td>PII (personal names)</td><td>None — no encryption-at-rest, masking, or field-level access control configured</td></tr>
+<tr><td>Employee (hypermedia)</td><td>name</td><td>PII (personal name)</td><td>None — no encryption-at-rest, masking, or field-level access control configured</td></tr>
+<tr><td>Employee (api-evolution)</td><td>firstName, lastName, role</td><td>PII (personal names)</td><td>None — no encryption-at-rest, masking, or field-level access control configured</td></tr>
+<tr><td>Manager (hypermedia)</td><td>name</td><td>PII (personal name)</td><td>None — no encryption-at-rest, masking, or field-level access control configured</td></tr>
+<tr><td>Order (spring-data-rest)</td><td>description</td><td>None identified</td><td>N/A</td></tr>
+</tbody></table></div>
+<p>Employee and Manager entities store basic personal names (PII). No encryption-at-rest, data masking, audit logging, or field-level access controls are implemented. Because all data is held only in-memory (H2) and the applications are educational examples, the exposure risk is limited to the runtime process, but any migration to a persistent database would require adding appropriate PII controls.</p></div>
+</div>
+<p class="footer">Your feedback is invaluable &mdash; <a href="https://aka.ms/ghcp-appmod/feedback">Share feedback</a></p>
+<script>
+function toggleRow(rowId, triggerRow) {
+  var detail = document.getElementById(rowId);
+  var btn = document.getElementById('btn-' + rowId);
+  if (!detail) return;
+  var visible = detail.style.display !== 'none';
+  detail.style.display = visible ? 'none' : 'table-row';
+  if (btn) btn.classList.toggle('open', !visible);
+}
+(function() {
+  var nav = document.querySelector('.tab-nav');
+  if (!nav) return;
+  nav.addEventListener('click', function(e) {
+    var btn = e.target.closest('.tab-btn');
+    if (!btn) return;
+    var targetId = btn.getAttribute('data-tab');
+    document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+    document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
+    btn.classList.add('active');
+    var panel = document.getElementById(targetId);
+    if (panel) {
+      panel.classList.add('active');
+      if (window.__mermaidReady) { window.__renderMermaidIn(panel); }
+    }
+  });
+})();
+
+// ── Diagram lightbox ────────────────────────────────────────
+(function() {
+  var lightbox = document.getElementById('diagram-lightbox');
+  var inner = document.getElementById('diagram-lightbox-inner');
+  var closeBtn = document.getElementById('diagram-lightbox-close');
+  if (!lightbox || !inner || !closeBtn) return;
+
+  var scale = 1;
+  var translateX = 0;
+  var translateY = 0;
+  var isDragging = false;
+  var dragStartX = 0;
+  var dragStartY = 0;
+
+  function applyTransform() {
+    var svg = inner.querySelector('svg');
+    if (svg) {
+      svg.style.transform = 'translate(' + translateX + 'px, ' + translateY + 'px) scale(' + scale + ')';
+      svg.style.transformOrigin = 'center center';
+      svg.style.transition = 'none';
+    }
+  }
+
+  function resetTransform() {
+    scale = 1; translateX = 0; translateY = 0;
+    applyTransform();
+  }
+
+  function openLightbox(svgEl) {
+    inner.innerHTML = svgEl.outerHTML;
+    var injected = inner.querySelector('svg');
+    if (injected) {
+      injected.removeAttribute('width');
+      injected.removeAttribute('height');
+      injected.style.cursor = 'grab';
+    }
+    resetTransform();
+    lightbox.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeLightbox() {
+    lightbox.classList.remove('open');
+    inner.innerHTML = '';
+    document.body.style.overflow = '';
+    resetTransform();
+  }
+
+  inner.addEventListener('wheel', function(e) {
+    e.preventDefault();
+    var delta = e.deltaY > 0 ? 0.9 : 1.1;
+    scale = Math.min(Math.max(scale * delta, 0.3), 8);
+    applyTransform();
+  }, { passive: false });
+
+  inner.addEventListener('mousedown', function(e) {
+    if (e.button !== 0) return;
+    isDragging = true;
+    dragStartX = e.clientX - translateX;
+    dragStartY = e.clientY - translateY;
+    var svg = inner.querySelector('svg');
+    if (svg) { svg.style.cursor = 'grabbing'; }
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', function(e) {
+    if (!isDragging) return;
+    translateX = e.clientX - dragStartX;
+    translateY = e.clientY - dragStartY;
+    applyTransform();
+  });
+
+  document.addEventListener('mouseup', function() {
+    if (!isDragging) return;
+    isDragging = false;
+    var svg = inner.querySelector('svg');
+    if (svg) { svg.style.cursor = 'grab'; }
+  });
+
+  inner.addEventListener('dblclick', function() { resetTransform(); });
+
+  document.addEventListener('click', function(e) {
+    var card = e.target.closest('.mermaid');
+    if (!card) return;
+    if (e.target.closest('.diagram-lightbox-close')) return;
+    var svg = card.querySelector('svg');
+    if (svg) { openLightbox(svg); }
+  });
+
+  closeBtn.addEventListener('click', closeLightbox);
+
+  lightbox.addEventListener('click', function(e) {
+    if (e.target === lightbox) { closeLightbox(); }
+  });
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') { closeLightbox(); }
+  });
+})();
+
+var _currentTarget = '';
+
+function toggleMultiSelect(id) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  document.querySelectorAll('.multi-select.open').forEach(function(ms) { if (ms.id !== id) ms.classList.remove('open'); });
+  el.classList.toggle('open');
+}
+
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.multi-select')) {
+    document.querySelectorAll('.multi-select.open').forEach(function(ms) { ms.classList.remove('open'); });
+  }
+});
+
+function getMultiSelectValues(msId) {
+  var el = document.getElementById(msId);
+  if (!el) return [];
+  var checked = el.querySelectorAll('input[type=checkbox]:checked');
+  var vals = [];
+  for (var i = 0; i < checked.length; i++) vals.push(checked[i].value);
+  return vals;
+}
+
+function onMultiSelectChange(msId, label) {
+  var el = document.getElementById(msId);
+  if (!el) return;
+  var vals = getMultiSelectValues(msId);
+  var total = el.querySelectorAll('input[type=checkbox]').length;
+  var btn = el.querySelector('.multi-select-btn');
+  if (btn) {
+    btn.textContent = vals.length > 0 && vals.length < total ? label + ' (' + vals.length + ')' : label;
+  }
+  applyFilters();
+}
+
+function applyFilters() {
+  var selectedDomains = getMultiSelectValues('domain-ms');
+  var selectedCrits = getMultiSelectValues('criticality-ms');
+
+  var sections = document.querySelectorAll('.issue-section');
+  for (var i = 0; i < sections.length; i++) {
+    var domain = sections[i].getAttribute('data-domain');
+    sections[i].style.display = (selectedDomains.length === 0 || selectedDomains.indexOf(domain) >= 0) ? '' : 'none';
+  }
+
+  var rows = document.querySelectorAll('.issue-row');
+  for (var i = 0; i < rows.length; i++) {
+    var row = rows[i];
+    var section = row.closest('.issue-section');
+    if (section && section.style.display === 'none') {
+      row.style.display = 'none';
+      var next = row.nextElementSibling;
+      if (next && next.classList.contains('detail-row')) next.style.display = 'none';
+      continue;
+    }
+
+    var show = true;
+    if (_currentTarget && row.hasAttribute('data-targets')) {
+      var targetsStr = row.getAttribute('data-targets');
+      if (targetsStr && targetsStr !== '{}') {
+        try {
+          var targets = JSON.parse(targetsStr);
+          if (Object.keys(targets).length > 0 && !targets[_currentTarget]) {
+            show = false;
+          }
+        } catch(e) {}
+      }
+    }
+
+    if (show && selectedCrits.length > 0) {
+      var crit = row.getAttribute('data-criticality');
+      if (selectedCrits.indexOf(crit) < 0) show = false;
+    }
+
+    row.style.display = show ? '' : 'none';
+    var nextRow = row.nextElementSibling;
+    if (nextRow && nextRow.classList.contains('detail-row')) {
+      if (!show) nextRow.style.display = 'none';
+    }
+  }
+}
+
+function clearAllFilters() {
+  document.querySelectorAll('.multi-select input[type=checkbox]').forEach(function(cb) { cb.checked = false; });
+  var domainBtn = document.querySelector('#domain-ms .multi-select-btn');
+  if (domainBtn) domainBtn.textContent = 'Domain';
+  var critBtn = document.querySelector('#criticality-ms .multi-select-btn');
+  if (critBtn) critBtn.textContent = 'Criticality';
+  applyFilters();
+}
+
+function onTargetChange(targetId) {
+  _currentTarget = targetId;
+  var rows = document.querySelectorAll('.issue-row[data-targets]');
+  var totalEffort = 0;
+  var domainCrits = {};
+
+  for (var i = 0; i < rows.length; i++) {
+    var row = rows[i];
+    var targets = JSON.parse(row.getAttribute('data-targets'));
+    var section = row.closest('.issue-section');
+    var domain = section ? section.getAttribute('data-domain') : '';
+
+    if (!targets || Object.keys(targets).length === 0) {
+      var sp = parseFloat(row.querySelector('.sp-cell').textContent) || 0;
+      totalEffort += sp;
+      if (!domainCrits[domain]) domainCrits[domain] = {mandatory:0,potential:0,optional:0};
+      var crit = row.getAttribute('data-criticality') || 'optional';
+      domainCrits[domain][crit] = (domainCrits[domain][crit] || 0) + 1;
+      continue;
+    }
+
+    var override = targets[targetId];
+    if (!override) {
+      continue;
+    }
+
+    var newSeverity = (override.severity || row.getAttribute('data-default-severity') || '').toLowerCase();
+    row.setAttribute('data-criticality', newSeverity);
+    var critCell = row.querySelector('.crit-cell');
+    if (critCell) {
+      var critText = newSeverity === 'mandatory' ? 'Mandatory' : newSeverity === 'potential' ? 'Potential' : 'Optional';
+      var cssClass = newSeverity === 'mandatory' ? 'crit-square-mandatory' : newSeverity === 'potential' ? 'crit-square-potential' : 'crit-square-optional';
+      critCell.innerHTML = '<span class="crit-label"><span class="crit-square ' + cssClass + '"></span>' + critText + '</span>';
+    }
+
+    var newEffort = override.effort !== undefined ? override.effort : parseFloat(row.getAttribute('data-default-effort')) || 0;
+    var spCell = row.querySelector('.sp-cell');
+    if (spCell) spCell.textContent = newEffort;
+    totalEffort += newEffort;
+
+    if (!domainCrits[domain]) domainCrits[domain] = {mandatory:0,potential:0,optional:0};
+    domainCrits[domain][newSeverity] = (domainCrits[domain][newSeverity] || 0) + 1;
+  }
+
+  var secSection = document.querySelector('.issue-section[data-domain="security"]');
+  if (secSection) {
+    var secRows = secSection.querySelectorAll('.issue-row');
+    for (var j = 0; j < secRows.length; j++) {
+      if (!secRows[j].hasAttribute('data-targets') || secRows[j].getAttribute('data-targets') === '') {
+        var sp = parseFloat(secRows[j].querySelector('.sp-cell').textContent) || 0;
+        totalEffort += sp;
+        if (!domainCrits['security']) domainCrits['security'] = {mandatory:0,potential:0,optional:0};
+        var sc = secRows[j].getAttribute('data-criticality') || 'optional';
+        domainCrits['security'][sc] = (domainCrits['security'][sc] || 0) + 1;
+      }
+    }
+  }
+
+  var label = totalEffort < 20 ? 'S' : totalEffort < 50 ? 'M' : totalEffort < 100 ? 'L' : 'XL';
+  var effortEl = document.getElementById('effort-display');
+  if (effortEl) effortEl.textContent = label + ' (total story points: ' + totalEffort + ')';
+
+  updateDonuts(domainCrits);
+  applyFilters();
+}
+
+function updateDonuts(domainCrits) {
+  var container = document.getElementById('donut-container');
+  if (!container) return;
+  container.innerHTML = '';
+  var domainNames = {'cloud-readiness':'Cloud Readiness','java-upgrade':'Java Upgrade','dotnet-upgrade':'DotNET Upgrade','security':'Security'};
+  var domainOrder = ['cloud-readiness','java-upgrade','dotnet-upgrade','security'];
+  for (var d = 0; d < domainOrder.length; d++) {
+    var key = domainOrder[d];
+    var c = domainCrits[key];
+    if (!c || (c.mandatory + c.potential + c.optional) === 0) continue;
+    var total = c.mandatory + c.potential + c.optional;
+    var div = document.createElement('div');
+    div.className = 'domain-summary-item';
+    div.innerHTML = buildDonutSvg(c.mandatory, c.potential, c.optional) +
+      '<h3>' + domainNames[key] + '</h3>' +
+      '<div class="count">' + total + ' issue' + (total !== 1 ? 's' : '') + '</div>';
+    container.appendChild(div);
+  }
+}
+
+function buildDonutSvg(m, p, o) {
+  var total = m + p + o;
+  if (total === 0) return '<svg viewBox="0 0 100 100" width="100" height="100" style="display:block;margin:0 auto;"><circle cx="50" cy="50" r="35" fill="none" stroke="#d0d7de" stroke-width="15" opacity="0.5"/></svg>';
+  var r = 35, circ = 2 * Math.PI * r, offset = 0;
+  var svg = '<svg viewBox="0 0 100 100" width="100" height="100" style="display:block;margin:0 auto;transform:rotate(-90deg);">';
+  var segs = [{c:m,color:'var(--color-mandatory)'},{c:p,color:'var(--color-potential)'},{c:o,color:'var(--color-optional)'}];
+  for (var i = 0; i < segs.length; i++) {
+    if (segs[i].c === 0) continue;
+    var segLen = (segs[i].c / total) * circ;
+    var gap = total > segs[i].c ? 1.5 : 0;
+    var drawLen = Math.max(segLen - gap, 0.5);
+    svg += '<circle cx="50" cy="50" r="' + r + '" fill="none" stroke="' + segs[i].color + '" stroke-width="15" stroke-dasharray="' + drawLen.toFixed(2) + ' ' + circ.toFixed(2) + '" stroke-dashoffset="' + (-offset).toFixed(2) + '"/>';
+    offset += segLen;
+  }
+  svg += '</svg>';
+  return svg;
+}
+</script>
+<script>document.addEventListener('DOMContentLoaded', function() { onTargetChange('azure-aks'); });</script>
+</div></body></html>
